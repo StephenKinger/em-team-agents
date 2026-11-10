@@ -1,0 +1,19 @@
+# Local configuration, credentials and runtime artifacts are not distributable.
+.opencode/
+.env
+.env.*
+!.env.example
+auth.json
+service.json
+credentials.json
+*credentials*
+*.pem
+*.key
+*.p12
+*.pfx
+*.log
+logs/
+.em-team-agents-backups/
+.em-team-agents.lock
+__pycache__/
+*.py[cod]
