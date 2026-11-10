@@ -165,6 +165,13 @@ them. The package `.gitignore` is defense in depth, not a secret scanner; it doe
 not protect already tracked files, Git history or another project's ignore file.
 No audit of historical Git objects is claimed.
 
+Contributors can use the fail-closed Gitleaks pre-commit hook and CI checks for
+the staged index, full available Git history and working tree. These are scan
+capabilities, not evidence that a historical audit has actually been executed.
+See [Security scanning (contributors)](INSTALL.md#security-scanning-contributors)
+for setup and [the publication checklist](INSTALL.md#manual-publication-checklist-not-an-automatic-action)
+for the ban on raw archives and the explicit public-file review before sharing.
+
 ## Validation and license
 
 ```sh

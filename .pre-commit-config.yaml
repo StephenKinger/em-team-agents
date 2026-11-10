@@ -1,0 +1,12 @@
+# Install the gitleaks binary separately and keep it on PATH (CI uses 8.30.1).
+# The system hook fails closed if the binary is missing; no fallback is used.
+repos:
+  -
+    repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      -
+        id: gitleaks
+        language: system
+        entry: gitleaks git --pre-commit --staged --config .gitleaks.toml --redact
+        pass_filenames: false

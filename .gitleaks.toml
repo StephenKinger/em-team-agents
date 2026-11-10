@@ -1,0 +1,3 @@
+# Keep the upstream secret-detection rules enabled without local exceptions.
+[extend]
+useDefault = true

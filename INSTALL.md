@@ -250,6 +250,26 @@ session, execute `/em` or send an inference request for this loading check.
 Static checks, English prose review and GET loading do not prove LLM response
 language behavior. No French/English/German inference verification is claimed.
 
+## Security scanning (contributors)
+
+Install pre-commit and the Gitleaks binary separately, with both available on
+`PATH`. Use Gitleaks 8.30.1 to match the pinned hook and CI version, then run:
+
+```sh
+pre-commit install
+```
+
+The pre-commit hook scans the staged Git index with the default Gitleaks rules
+extended by `.gitleaks.toml`; a missing binary blocks the hook (fail-closed).
+CI installs the pinned binary after verifying its published release checksum,
+runs the public unittest suite, then scans the full available Git history
+(`--log-opts=--all`, full-depth checkout) and the working tree with redacted
+output. Both scans run after successful tests even if the history scan fails;
+installation, test or scan failure fails the job, without a fallback scanner.
+The suite's homemade hygiene scanner remains a complementary check, not a
+replacement for Gitleaks. Scan capability does not establish that an audit has
+actually run; review the results and scope of each execution separately.
+
 ## Manual publication checklist (not an automatic action)
 
 Before any later, separately authorized Git publication:
@@ -266,5 +286,9 @@ Before any later, separately authorized Git publication:
 5. Confirm the desired hosting repository, visibility and license before any
    separately requested commit, remote setup or push. No remote URL, commit or
    publication is performed or implied by these instructions.
+6. Never publish a raw archive containing `.git/`, caches (`__pycache__/`),
+   bytecode (`*.pyc` or `*.pyo`) or backups. Build release archives only from an
+   explicitly reviewed set of public files, and inspect the archive contents
+   before sharing.
 
 The installer never stages, commits, configures remotes, pushes or deploys.

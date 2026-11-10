@@ -26,9 +26,45 @@ import support_pkg as sp
 # Publication allowlist: exact root files plus these directories. Anything
 # else in the repo fails - before AND after production. A2-R adds the English
 # MULTI-AGENTS.md guide at the repo root (shipped, but NOT installed by the
-# installer: scripts/install.py manages only config/ payload files).
-ALLOWED_ROOT_FILES = {"LICENSE", "README.md", "INSTALL.md", ".gitignore", "MULTI-AGENTS.md"}
+# installer: scripts/install.py manages only config/ payload files). Design A
+# adds the two Gitleaks root files; the Actions workflow is allowed ONLY at the
+# exact path in ALLOWED_EXACT_PATHS (never the whole .github/ tree).
+ALLOWED_ROOT_FILES = {
+    "LICENSE",
+    "README.md",
+    "INSTALL.md",
+    ".gitignore",
+    "MULTI-AGENTS.md",
+    ".pre-commit-config.yaml",
+    ".gitleaks.toml",
+}
 ALLOWED_DIRS = ("config/", "scripts/", "tests/")
+ALLOWED_EXACT_PATHS = {".github/workflows/secrets.yml"}
+
+
+def is_allowlisted(rel):
+    """Publication-allowlist predicate for a repo-relative posix path."""
+    return rel in ALLOWED_ROOT_FILES or rel in ALLOWED_EXACT_PATHS or rel.startswith(ALLOWED_DIRS)
+
+
+def allowlist_offenders(root):
+    """Files under root that are outside the publication allowlist.
+
+    Same exclusions as the repo hygiene scan: VCS internals and generated
+    bytecode are never publication offenders.
+    """
+    root = Path(root)
+    offenders = []
+    for p in sorted(root.rglob("*")):
+        if not p.is_file():
+            continue
+        rel_path = p.relative_to(root)
+        if ".git" in rel_path.parts or "__pycache__" in rel_path.parts or p.suffix == ".pyc":
+            continue
+        rel = rel_path.as_posix()
+        if not is_allowlisted(rel):
+            offenders.append(rel)
+    return offenders
 
 # Tokens proving the public suite does not couple to the repo git index or to
 # a personal global config. Built by concatenation so this source file does
@@ -53,18 +89,41 @@ class PortableGuardTest(unittest.TestCase):
         self.assertIn(b"Copyright (c) 2026 Keezy", raw)
 
     def test_02_repo_contains_only_publication_allowlisted_files(self):
-        offenders = []
-        for p in sp.iter_repo_files():
-            rel = p.relative_to(sp.REPO_ROOT).as_posix()
-            if rel in ALLOWED_ROOT_FILES or rel.startswith(ALLOWED_DIRS):
-                continue
-            offenders.append(rel)
+        offenders = allowlist_offenders(sp.REPO_ROOT)
         self.assertEqual(
             [],
             offenders,
-            "files outside the publication allowlist (root files %s, dirs %s): %s"
-            % (sorted(ALLOWED_ROOT_FILES), ALLOWED_DIRS, offenders),
+            "files outside the publication allowlist (root files %s, exact paths %s, dirs %s): %s"
+            % (sorted(ALLOWED_ROOT_FILES), sorted(ALLOWED_EXACT_PATHS), ALLOWED_DIRS, offenders),
         )
+
+    def test_05_allowlist_accepts_only_the_approved_security_paths(self):
+        # Design A regression, with real temp files (never the repo itself, so
+        # it passes both before and after the production files exist): the two
+        # new root files and the exact workflow path are accepted, while an
+        # arbitrary root file and any other file under .github/ stay rejected.
+        tmp = sp.make_temp("emt-allowlist-")
+        try:
+            allowed = [".pre-commit-config.yaml", ".gitleaks.toml", ".github/workflows/secrets.yml"]
+            refused = [
+                "arbitrary-root-file.txt",
+                ".github/workflows/other.yml",
+                ".github/other-file.txt",
+            ]
+            for rel in allowed + refused:
+                p = tmp / rel
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_text("placeholder\n", encoding="utf-8")
+            offenders = allowlist_offenders(tmp)
+            self.assertEqual(
+                sorted(refused),
+                sorted(offenders),
+                "only the approved security paths may be allowlisted; offenders: %s" % offenders,
+            )
+            for rel in allowed:
+                self.assertNotIn(rel, offenders, "%s must be allowlisted" % rel)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
 
     def test_03_public_suite_has_no_git_index_or_global_config_coupling(self):
         offenders = []

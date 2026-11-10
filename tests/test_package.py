@@ -279,19 +279,21 @@ class ConfigContractTest(unittest.TestCase):
 class MultiAgentsGuideTest(unittest.TestCase):
     """A2-R: English MULTI-AGENTS.md guide at the repo ROOT, never installed."""
 
-    # Forbidden in the guide: personal paths (built by concatenation so this
-    # source file itself stays free of the scanned home-path literal), the
-    # legacy profile id, machine-private files, machine snapshots/backups and
-    # machine build customizations.
+    # Forbidden in the guide: the legacy profile id, machine-private files,
+    # machine snapshots/backups and machine build customizations. No personal
+    # identity is pinned in this list (design B): every home path is caught by
+    # the generic HOME_PATH_RULE below, built by concatenation so this source
+    # file itself stays free of the scanned home-path literal.
     FORBIDDEN_TOKENS = (
         "Concepteur",
-        "/" + "home/" + "steph",
         "service" + chr(46) + "json",
         "build_big",
         "opencode" + chr(46) + "json.gpt",
         "backup-multi-agents",
     )
     ALL_COMMAND_TOKENS = tuple("/" + c for c in sp.COMMAND_NAMES)
+    # Generic home-path rule: rejects ANY /home/<name> in the guide.
+    HOME_PATH_RULE = re.compile("/" + "home/[A-Za-z0-9._-]+")
 
     def _guide(self):
         path = sp.REPO_ROOT / sp.ROOT_GUIDE_NAME
@@ -321,8 +323,40 @@ class MultiAgentsGuideTest(unittest.TestCase):
                 "file / machine snapshot / machine build customization)" % token,
             )
         self.assertIsNone(
-            re.search("/" + "home/[A-Za-z0-9._-]+", text),
+            self.HOME_PATH_RULE.search(text),
             "RED: guide must not contain any personal home path",
+        )
+
+    def test_forbidden_tokens_pin_no_personal_home_path(self):
+        # Contract B: FORBIDDEN_TOKENS must not embed a specific personal
+        # identity. The anchored rule is built by concatenation so this test
+        # source never contains the scanned literal; run against the old
+        # FORBIDDEN_TOKENS (which still reconstructed a personal path) this
+        # test fails, proving it is not vacuous.
+        anchored = re.compile("^" + "/" + "home/[^/]+$")
+        offenders = [t for t in self.FORBIDDEN_TOKENS if anchored.match(t)]
+        self.assertEqual(
+            [],
+            offenders,
+            "FORBIDDEN_TOKENS must not pin a personal home path; the generic "
+            "HOME_PATH_RULE covers every /home/<name>",
+        )
+
+    def test_generic_home_path_rule_rejects_synthetic_names(self):
+        # Parametrized regression: injecting any synthetic /home/<name> into
+        # the guide text must be rejected by the generic rule (paths are
+        # assembled by concatenation to keep this source clean).
+        _path, text = self._guide()
+        for name in ("alice", "bob-42", "o.neill"):
+            with self.subTest(name=name):
+                injected = text + "\nSee also " + "/" + "home/" + name + "/notes\n"
+                self.assertIsNotNone(
+                    self.HOME_PATH_RULE.search(injected),
+                    "generic rule must reject the synthetic path /home/" + name,
+                )
+        self.assertIsNone(
+            self.HOME_PATH_RULE.search(text),
+            "the clean guide itself must stay clean",
         )
 
     def test_guide_documents_the_eight_commands_and_both_entry_paths(self):
@@ -431,6 +465,33 @@ class DocsAndScriptsContractTest(unittest.TestCase):
         self.assertIn(sp.BACKUP_DIR_NAME, text, "INSTALL.md must document the private backup dir")
         self.assertIn("JSONC", text, "INSTALL.md must state that JSONC destinations are refused (manual handling)")
         self.assertIn("Linux", text, "INSTALL.md must state Linux-only support (no Windows/macOS promise)")
+
+    def test_install_md_publication_checklist_bans_raw_archives(self):
+        # Design C: the manual publication checklist (the last section of
+        # INSTALL.md) must forbid publishing raw archives and must name .git/,
+        # caches (__pycache__/), bytecode (*.pyc) and backups; archives must be
+        # built from an explicitly reviewed set of public files only.
+        path = sp.REPO_ROOT / "INSTALL.md"
+        if not path.is_file():
+            self.fail("RED: INSTALL.md is missing")
+        text = path.read_text(encoding="utf-8")
+        m = re.search(r"(?m)^#+ .*publication checklist.*$", text, re.I)
+        if not m:
+            self.fail("RED: INSTALL.md must keep a manual publication checklist section")
+        section = text[m.start():]
+        low = " ".join(section.split()).lower()
+        self.assertIn("archive", low, "RED: publication checklist must forbid publishing raw archives")
+        for token in (".git/", "__pycache__/", ".pyc", "backup"):
+            self.assertIn(
+                token,
+                section,
+                "RED: publication checklist must mention %r in the raw-archive ban" % token,
+            )
+        self.assertRegex(
+            section,
+            re.compile(r"explicit", re.I),
+            "RED: archives must be built from an explicitly reviewed set of public files",
+        )
 
     def test_gitignore_covers_backups_and_protects_license_and_tests(self):
         path = sp.REPO_ROOT / ".gitignore"
