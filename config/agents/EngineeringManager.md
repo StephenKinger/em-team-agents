@@ -96,12 +96,10 @@ contract and be rerun. If the environment blocks TDD, expose the blocker and
 request a decision; do not claim the cycle is complete or quietly send work
 to Developer.
 
-# Optional agents: only on request, after the mandatory cycle
+# Optional agents: only on explicit request, with two entry paths
 
-Do not spontaneously launch Reviewer, Documentalist or SecurityOfficer. An
-explicit user request may arrive initially or after delivery. Once the cycle
-is complete, requested roles may run in parallel as background subagents;
-wait for notifications without polling.
+Do not spontaneously launch Reviewer, Documentalist or SecurityOfficer. Launch
+only the optional roles explicitly requested by the user.
 
 - **Reviewer**: bugs, regressions, conventions and runtime consequences.
 - **Documentalist**: usage documentation for all modules and functions in the
@@ -109,17 +107,55 @@ wait for notifications without polling.
 - **SecurityOfficer**: attack surfaces, vulnerabilities and current security
   advisories verified against dated sources.
 
-Freeze the files first: neither Developer nor Tester may still be modifying
-them. Audits read a clearly identified reference version. Documentalist changes
-only documentation and comments. Parallel reading is allowed, but have findings
-re-examined wherever files changed meanwhile, and revalidate executable examples
-after documentation edits. Do not imply audits cover a final version they did
-not inspect. Auditors do not fix application code themselves.
+## Standalone commands through EM
 
-Report audit defects without automatically authorizing an out-of-scope fix. An
-approved correction resumes the necessary cycle, including a regression test
-before the fix. A standalone audit request does not prove the mandatory cycle
-has happened: clarify its history without launching unrequested changes.
+/review, /doc and /security are explicit requests to delegate immediately to
+Reviewer, Documentalist and SecurityOfficer respectively. Do not require,
+reconstruct or verify completion of the mandatory cycle for these commands.
+Do not launch Explorer, Architect, Tester, Developer or any unrequested agent.
+
+Supply the relevant available context, precise scope, reference version,
+response_language and optional_agent_path: standalone. Missing prior design,
+approval or RED/GREEN evidence is not a blocker for this path. Ask only necessary
+scope or language clarifications, not workflow-history questions. If the requested
+specialist is unavailable, report the blocker rather than substituting yourself
+or another agent. Summarize the specialist's report and limitations.
+
+These commands authorize no functional code changes. Reviewer and SecurityOfficer
+remain read-only. Documentalist may change only documentation, comments and
+docstrings with no functional effect. Do not initiate a correction workflow
+automatically.
+
+## Existing post-cycle commands
+
+/em-review, /em-doc, /em-security and /em-audit retain their existing prerequisites:
+verify that the mandatory cycle completed before launching the requested roles.
+If it did not, explain what is missing without launching unrequested
+implementation. Supply optional_agent_path: post-cycle after verification.
+
+The /em command and the mandatory workflow for functional changes are unchanged.
+An optional-agent request outside the standalone commands does not by itself
+establish a cycle exemption: clarify the intended entry path when necessary.
+Never treat a standalone report as proof that the mandatory cycle occurred.
+
+## Shared coordination and correction boundaries
+
+Identify a stable reference version before inspection. Do not run these tasks
+against files that Developer, Tester or another writer is still modifying;
+report a coordination blocker rather than launching another agent. Checking for
+concurrent writes is not a check of mandatory-cycle completion.
+
+When multiple optional roles are explicitly requested through a supported entry
+path, they may run in parallel as background subagents; wait for notifications
+without polling. Only Documentalist may edit documentation and comments.
+Have findings re-examined wherever files changed meanwhile, and revalidate
+executable examples after documentation edits. Do not imply audits cover a final
+version they did not inspect.
+
+Report defects without automatically authorizing fixes. Proposed functional
+corrections must return to the mandatory EM workflow with applicable user
+approval and a regression test before implementation. Optional-agent work
+neither proves nor completes that workflow.
 
 # Context, traceability and handoffs
 

@@ -28,6 +28,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import support_pkg as sp
+import expected_payload as ep
 
 # Prompt language contract (static, not an LLM proof): every agent prompt must
 # state that it answers in the language of the latest human request unless an
@@ -55,9 +56,10 @@ class LayoutTest(unittest.TestCase):
         self.assertEqual(
             [],
             missing,
-            "RED: package contract files missing (design: config/opencode.json, "
-            "config/agents/<8>.md, config/commands/<5>.md, README.md, INSTALL.md, "
-            ".gitignore, scripts/install.py, tests/): %s" % missing,
+            "RED: package contract files missing (design A2-R: config/opencode.json, "
+            "config/agents/<8>.md, config/commands/<8>.md, MULTI-AGENTS.md (repo root, "
+            "NOT installed), README.md, INSTALL.md, .gitignore, scripts/install.py, "
+            "tests/): %s" % missing,
         )
 
     def test_agents_dir_has_exactly_the_8_expected_names(self):
@@ -68,12 +70,17 @@ class LayoutTest(unittest.TestCase):
         self.assertEqual(sorted(sp.AGENT_NAMES), names)
         self.assertNotIn("Concepteur", names, "Concepteur must be renamed to Architect inside the package")
 
-    def test_commands_dir_has_exactly_the_5_expected_names(self):
+    def test_commands_dir_has_exactly_the_8_expected_names(self):
         cdir = sp.REPO_ROOT / "config" / "commands"
         if not cdir.is_dir():
             self.fail("RED: config/commands/ is missing; expected " + ", ".join(sp.COMMAND_NAMES))
         names = sorted(p.stem for p in cdir.glob("*.md"))
         self.assertEqual(sorted(sp.COMMAND_NAMES), names)
+        self.assertEqual(
+            8,
+            len(names),
+            "RED: A2-R expects 8 commands (5 /em* + review/doc/security), got %d" % len(names),
+        )
 
 
 class AgentContractTest(unittest.TestCase):
@@ -162,6 +169,87 @@ class CommandContractTest(unittest.TestCase):
                 self.assertIn("$ARGUMENTS", body, "template must keep an explicit $ARGUMENTS block")
                 self.assertRegex(body, ARG_LANG, "template must give priority to the language of the user arguments")
 
+    def test_standalone_wrappers_have_the_frozen_approved_content(self):
+        # A2-R: review/doc/security wrappers exist and their FULL text is frozen
+        # in tests/expected_payload.py (captured once from the approved source;
+        # the test never reads the user's global config at run time).
+        self.assertEqual(sorted(sp.STANDALONE_COMMAND_NAMES), sorted(ep.STANDALONE_COMMAND_NAMES))
+        for name in ep.STANDALONE_COMMAND_NAMES:
+            with self.subTest(command=name):
+                self.assertIn(name, sp.COMMAND_NAMES)
+                path = sp.REPO_ROOT / "config" / "commands" / (name + ".md")
+                if not path.is_file():
+                    self.fail("RED: config/commands/%s.md is missing (standalone wrapper)" % name)
+                text = path.read_text(encoding="utf-8")
+                fields, _perms, body = sp.parse_frontmatter(text)
+                self.assertEqual("EngineeringManager", fields.get("agent"), "wrapper must select EM")
+                self.assertEqual("false", fields.get("subagent"), "wrapper must stay in the current session")
+                self.assertNotIn("model", fields, "wrapper must NOT carry its own model field")
+                self.assertTrue(fields.get("description"), "description must be non-empty")
+                norm = " ".join(body.split())
+                self.assertIn("$ARGUMENTS", body, "wrapper must keep the $ARGUMENTS block")
+                self.assertIn("optional_agent_path: standalone", norm)
+                self.assertIn(
+                    "Do not require, reconstruct or verify completion of the mandatory cycle",
+                    norm,
+                    "wrapper must not check the mandatory cycle",
+                )
+                self.assertEqual(
+                    ep.EXPECTED_COMMAND_TEXT[name],
+                    text,
+                    "RED: config/commands/%s.md must be byte-identical to the frozen approved wrapper "
+                    "(sha256 %s)" % (name, ep.FROZEN_SHA256["commands/%s.md" % name]),
+                )
+
+
+class ModifiedProfileContractTest(unittest.TestCase):
+    """A2-R: only the BODIES of the 4 profiles change; frontmatter stays byte-identical."""
+
+    def _agent_path(self, name):
+        return sp.REPO_ROOT / "config" / "agents" / (name + ".md")
+
+    def _frontmatter_block(self, text):
+        lines = text.splitlines(keepends=True)
+        self.assertEqual("---", lines[0].strip(), "agent file must open with a frontmatter fence")
+        j = next(i for i in range(1, len(lines)) if lines[i].strip() == "---")
+        return "".join(lines[: j + 1])
+
+    def test_modified_profiles_exist(self):
+        for name in ep.MODIFIED_PROFILE_NAMES:
+            with self.subTest(agent=name):
+                if not self._agent_path(name).is_file():
+                    self.fail("RED: config/agents/%s.md is missing" % name)
+
+    def test_modified_profiles_frontmatter_is_byte_identical_to_current(self):
+        # Frontmatter (description/mode/model/color/ordered permissions) must be
+        # strictly unchanged: byte-exact comparison with the frozen block.
+        for name in ep.MODIFIED_PROFILE_NAMES:
+            with self.subTest(agent=name):
+                text = self._agent_path(name).read_text(encoding="utf-8")
+                block = self._frontmatter_block(text)
+                self.assertEqual(
+                    ep.EXPECTED_PROFILE_FRONTMATTER[name],
+                    block,
+                    "RED: frontmatter of %s must stay byte-identical (model/permissions unchanged); "
+                    "frozen sha256 %s" % (name, ep.FROZEN_SHA256["agents/%s.md#frontmatter" % name]),
+                )
+
+    def test_modified_profiles_bodies_carry_the_two_entry_paths(self):
+        # New bodies must add the autonomous path: standalone commands,
+        # optional_agent_path and "completion of the mandatory cycle is not a
+        # prerequisite" (frozen snippets from the approved machine profiles).
+        for name in ep.MODIFIED_PROFILE_NAMES:
+            with self.subTest(agent=name):
+                text = self._agent_path(name).read_text(encoding="utf-8")
+                _fields, _perms, body = sp.parse_frontmatter(text)
+                norm = " ".join(body.split())
+                for snippet in ep.PROFILE_BODY_SNIPPETS[name]:
+                    self.assertIn(
+                        " ".join(snippet.split()),
+                        norm,
+                        "RED: body of %s must contain the approved snippet: %r" % (name, snippet[:80]),
+                    )
+
 
 class ConfigContractTest(unittest.TestCase):
     def test_config_opencode_json_is_minimal_and_exact(self):
@@ -175,6 +263,96 @@ class ConfigContractTest(unittest.TestCase):
         self.assertEqual("EngineeringManager", cfg["default_agent"])
         self.assertEqual(sp.MODEL_EM, cfg["model"])
 
+    def test_config_opencode_json_is_byte_identical_to_the_approved_minimal(self):
+        # A2-R: config/opencode.json is UNCHANGED - strictly the 3 fields, exact bytes.
+        path = sp.REPO_ROOT / "config" / "opencode.json"
+        if not path.is_file():
+            self.fail("RED: config/opencode.json is missing")
+        self.assertEqual(
+            ep.EXPECTED_OPENCODE_JSON_TEXT,
+            path.read_text(encoding="utf-8"),
+            "RED: config/opencode.json must stay byte-identical (frozen sha256 %s); only the 3 "
+            "fields $schema/default_agent/model" % ep.FROZEN_SHA256["opencode.json"],
+        )
+
+
+class MultiAgentsGuideTest(unittest.TestCase):
+    """A2-R: English MULTI-AGENTS.md guide at the repo ROOT, never installed."""
+
+    # Forbidden in the guide: personal paths (built by concatenation so this
+    # source file itself stays free of the scanned home-path literal), the
+    # legacy profile id, machine-private files, machine snapshots/backups and
+    # machine build customizations.
+    FORBIDDEN_TOKENS = (
+        "Concepteur",
+        "/" + "home/" + "steph",
+        "service" + chr(46) + "json",
+        "build_big",
+        "opencode" + chr(46) + "json.gpt",
+        "backup-multi-agents",
+    )
+    ALL_COMMAND_TOKENS = tuple("/" + c for c in sp.COMMAND_NAMES)
+
+    def _guide(self):
+        path = sp.REPO_ROOT / sp.ROOT_GUIDE_NAME
+        if not path.is_file():
+            self.fail("RED: %s is missing at the repo root (English guide, A2-R)" % sp.ROOT_GUIDE_NAME)
+        return path, path.read_text(encoding="utf-8")
+
+    def test_guide_exists_at_repo_root_and_not_inside_config(self):
+        path, _text = self._guide()
+        self.assertEqual(sp.REPO_ROOT / sp.ROOT_GUIDE_NAME, path)
+        cfg = sp.REPO_ROOT / "config"
+        inside = [p for p in cfg.rglob(sp.ROOT_GUIDE_NAME)] if cfg.is_dir() else []
+        self.assertEqual(
+            [],
+            inside,
+            "RED: the guide must live at the repo root only, never inside config/ "
+            "(it is not installed by the installer): %s" % inside,
+        )
+
+    def test_guide_excludes_personal_and_machine_private_content(self):
+        _path, text = self._guide()
+        for token in self.FORBIDDEN_TOKENS:
+            self.assertNotIn(
+                token,
+                text,
+                "RED: guide must not contain %r (personal path / legacy id / machine-private "
+                "file / machine snapshot / machine build customization)" % token,
+            )
+        self.assertIsNone(
+            re.search("/" + "home/[A-Za-z0-9._-]+", text),
+            "RED: guide must not contain any personal home path",
+        )
+
+    def test_guide_documents_the_eight_commands_and_both_entry_paths(self):
+        _path, text = self._guide()
+        low = text.lower()
+        for token in self.ALL_COMMAND_TOKENS:
+            self.assertIn(token, text, "RED: guide must list command %s (8 commands)" % token)
+        for token in ("standalone", "post-cycle"):
+            self.assertIn(token, low, "RED: guide must describe the %s entry path" % token)
+        for name in sp.AGENT_NAMES:
+            self.assertIn(name, text, "RED: guide model table must list profile %s" % name)
+        self.assertIn("Architect", text, "RED: guide must use Architect (not the legacy id)")
+        for model in sorted(set(sp.EXPECTED_MODELS.values())):
+            self.assertIn(model, text, "RED: guide model table must pin %s" % model)
+        # Model priority: command > agent > session.
+        self.assertRegex(
+            text,
+            re.compile(r"command.{0,300}agent.{0,300}session", re.I | re.S),
+            "RED: guide must state the model priority command > agent > session",
+        )
+        # Warning: /review overrides the native command of the same name.
+        self.assertRegex(
+            text,
+            re.compile(r"overrid\w*|overload\w*|shadow\w*", re.I),
+            "RED: guide must warn that /review overrides the native command",
+        )
+        self.assertIn("native", low, "RED: guide must mention the native command being overridden")
+        # Operator verification refers to INSTALL.
+        self.assertIn("INSTALL.md", text, "RED: guide must point operator verification to INSTALL.md")
+
 
 class DocsAndScriptsContractTest(unittest.TestCase):
     def test_readme_documents_the_install_command(self):
@@ -183,6 +361,64 @@ class DocsAndScriptsContractTest(unittest.TestCase):
             self.fail("RED: README.md is missing")
         text = path.read_text(encoding="utf-8")
         self.assertIn("python3 scripts/install.py", text, "README must document the CLI install command")
+
+    def test_readme_and_install_describe_8_commands_two_paths_and_exclusions(self):
+        # A2-R: both docs must document the 8 commands (5 /em* + review/doc/security),
+        # the two entry paths (standalone vs post-cycle), the /review native-command
+        # override warning, the link to MULTI-AGENTS.md and the local exclusions; the
+        # old "optional specialists only after the mandatory cycle" claim must go.
+        docs = {}
+        for doc in ("README.md", "INSTALL.md"):
+            path = sp.REPO_ROOT / doc
+            if not path.is_file():
+                self.fail("RED: %s is missing" % doc)
+            docs[doc] = path.read_text(encoding="utf-8")
+        all_commands = tuple("/" + c for c in sp.COMMAND_NAMES)
+        for doc, text in docs.items():
+            with self.subTest(doc=doc):
+                norm = " ".join(text.split())
+                for token in all_commands:
+                    self.assertIn(token, text, "RED: %s must mention command %s (8 commands)" % (doc, token))
+                low = norm.lower()
+                for token in ("standalone", "post-cycle"):
+                    self.assertIn(token, low, "RED: %s must describe the %s path" % (doc, token))
+                self.assertRegex(
+                    norm,
+                    re.compile(r"overrid\w*|overload\w*|shadow\w*", re.I),
+                    "RED: %s must warn that /review overrides the native command" % doc,
+                )
+                self.assertIn("native", low, "RED: %s must mention the native /review command" % doc)
+                self.assertIn(
+                    sp.ROOT_GUIDE_NAME, text,
+                    "RED: %s must link the %s guide" % (doc, sp.ROOT_GUIDE_NAME),
+                )
+                self.assertIsNone(
+                    re.search(r"five[^.\n]{0,40}commands?\b", norm, re.I),
+                    "RED: %s must not claim five commands anymore (A2-R: eight)" % doc,
+                )
+                self.assertIsNone(
+                    re.search(
+                        r"(optional|specialist|Reviewer|Documentalist|SecurityOfficer)"
+                        r"[^.\n]{0,160}only[^.\n]{0,80}after the mandatory cycle",
+                        norm,
+                        re.I,
+                    ),
+                    "RED: %s must drop the 'optional specialists only after the mandatory cycle' "
+                    "claim (A2-R: the standalone path exists)" % doc,
+                )
+                # Local exclusions documented: legacy profile id, private machine
+                # files, build/plan customizations left local.
+                self.assertIn("Concepteur", text, "RED: %s must document the legacy Concepteur exclusion" % doc)
+                self.assertRegex(
+                    text,
+                    re.compile(r"credential|service" + chr(46) + r"json|auth" + chr(46) + r"json", re.I),
+                    "RED: %s must document private machine files as excluded/local" % doc,
+                )
+                self.assertRegex(
+                    text,
+                    re.compile(r"build\s*/?\s*plan", re.I),
+                    "RED: %s must document build/plan customizations as left local" % doc,
+                )
 
     def test_install_md_documents_the_cli_contract(self):
         path = sp.REPO_ROOT / "INSTALL.md"

@@ -40,7 +40,12 @@ AGENT_NAMES = [
     "SecurityOfficer",
 ]
 SUBAGENT_NAMES = [n for n in AGENT_NAMES if n != "EngineeringManager"]
-COMMAND_NAMES = ["em", "em-review", "em-doc", "em-security", "em-audit"]
+# A2-R: the 5 /em* commands plus the 3 standalone wrappers = 8 commands.
+COMMAND_NAMES = ["em", "em-review", "em-doc", "em-security", "em-audit", "review", "doc", "security"]
+STANDALONE_COMMAND_NAMES = ["review", "doc", "security"]
+# Files expected at the repo ROOT (A2-R adds the English guide; it is shipped in
+# the repo but intentionally NOT installed by scripts/install.py).
+ROOT_GUIDE_NAME = "MULTI-AGENTS.md"
 
 MODEL_EM = "openrouter/mistralai/mistral-large-4-0"
 MODEL_LUNA = "openrouter/openai/gpt-6-luna"
@@ -128,9 +133,10 @@ BACKUP_DIR_NAME = ".em-team-agents-backups"
 LOCK_NAME = ".em-team-agents.lock"
 
 EXPECTED_PACKAGE_FILES = (
-    ["LICENSE", "README.md", "INSTALL.md", ".gitignore", "config/opencode.json", "scripts/install.py",
-     "tests/support_pkg.py", "tests/test_guard.py", "tests/test_package.py", "tests/test_support.py",
-     "tests/test_install.py"]
+    ["LICENSE", "README.md", "INSTALL.md", ".gitignore", ROOT_GUIDE_NAME, "config/opencode.json",
+     "scripts/install.py",
+     "tests/support_pkg.py", "tests/expected_payload.py", "tests/test_guard.py", "tests/test_package.py",
+     "tests/test_support.py", "tests/test_install.py"]
     + ["config/agents/" + n + ".md" for n in AGENT_NAMES]
     + ["config/commands/" + c + ".md" for c in COMMAND_NAMES]
 )

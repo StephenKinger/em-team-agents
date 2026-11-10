@@ -28,6 +28,9 @@ PAYLOAD_RELS = sorted(
 )
 EXPECTED_WITH_DEFAULTS = sorted(PAYLOAD_RELS + ["opencode.json"])
 MARKER = "SECRET_MARKER_42"
+# A2-R: 8 agents + 8 commands = 16 markdown payload files under config/.
+EXPECTED_PAYLOAD_COUNT = 16
+STANDALONE_RELS = ["commands/" + c + ".md" for c in sp.STANDALONE_COMMAND_NAMES]
 
 
 class InstallerCliTest(unittest.TestCase):
@@ -426,6 +429,190 @@ class InstallerCliTest(unittest.TestCase):
             self.assertEqual(set(), sp.rel_files(dest), "nothing may be written into a read-only dir")
         finally:
             os.chmod(dest, 0o755)
+
+
+class A2RInstallerContractTest(unittest.TestCase):
+    """A2-R RED contract: 16-file payload (8 commands), MULTI-AGENTS.md never
+    installed, standalone wrapper collisions, embedded commands.* collisions,
+    build/plan JSON keys preserved, idempotent second run."""
+
+    def setUp(self):
+        self.tmp = sp.make_temp("emt-a2r-")
+        self.home = self.tmp / "home"
+        self.home.mkdir()
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def run_cli(self, args, xdg=None, cwd=None):
+        return sp.run_installer(args, home=self.home, xdg=xdg, cwd=cwd)
+
+    def out(self, r):
+        return sp.sanitize((r.stdout or "") + (r.stderr or ""))
+
+    def test_payload_allowlist_is_exactly_16_markdown_files(self):
+        self.assertEqual(EXPECTED_PAYLOAD_COUNT, len(PAYLOAD_RELS))
+        self.assertTrue(all(rel.endswith(".md") for rel in PAYLOAD_RELS))
+        for rel in STANDALONE_RELS:
+            self.assertIn(rel, PAYLOAD_RELS, "standalone wrapper must be in the closed payload list: " + rel)
+
+    def test_fresh_install_copies_16_markdown_files_byte_identical(self):
+        dest = self.tmp / "fresh16"
+        r = self.run_cli(["--target", str(dest)])
+        self.assertEqual(0, r.returncode, "fresh --target install failed: " + self.out(r))
+        files = sp.rel_files(dest)
+        self.assertEqual(set(PAYLOAD_RELS), files)
+        self.assertEqual(EXPECTED_PAYLOAD_COUNT, len(files), "RED: 16 markdown files expected (8 commands)")
+        for rel in PAYLOAD_RELS:
+            src = sp.REPO_ROOT / "config" / rel
+            self.assertEqual(
+                src.read_bytes(), (dest / rel).read_bytes(),
+                "installed bytes must be identical to the payload: " + rel,
+            )
+        self.assertFalse((dest / "opencode.json").exists())
+
+    def test_fresh_install_with_set_defaults_writes_17_files(self):
+        dest = self.tmp / "fresh17"
+        r = self.run_cli(["--target", str(dest), "--set-defaults"])
+        self.assertEqual(0, r.returncode, self.out(r))
+        files = sp.rel_files(dest)
+        self.assertEqual(set(EXPECTED_WITH_DEFAULTS), files)
+        self.assertEqual(EXPECTED_PAYLOAD_COUNT + 1, len(files), "RED: 16 markdown + 1 JSON = 17 files")
+
+    def test_multi_agents_guide_is_never_installed(self):
+        dest = self.tmp / "noguide"
+        r = self.run_cli(["--target", str(dest), "--set-defaults", "--replace"])
+        self.assertEqual(0, r.returncode, self.out(r))
+        leaked = [p for p in dest.rglob(sp.ROOT_GUIDE_NAME)]
+        self.assertEqual([], leaked, "RED: MULTI-AGENTS.md must NOT be installed into the destination")
+        self.assertNotIn(sp.ROOT_GUIDE_NAME, sp.rel_files(dest))
+
+    def test_preexisting_multi_agents_md_preserved_even_with_replace(self):
+        dest = self.tmp / "keepguide"
+        dest.mkdir()
+        guide = dest / sp.ROOT_GUIDE_NAME
+        original = "# my own notes\n\nDo not touch.\n"
+        guide.write_text(original, encoding="utf-8")
+        before_mtime = guide.stat().st_mtime_ns
+        r = self.run_cli(["--target", str(dest), "--replace", "--set-defaults"])
+        self.assertEqual(0, r.returncode, self.out(r))
+        self.assertEqual(original, guide.read_text(encoding="utf-8"), "pre-existing guide must keep exact bytes")
+        self.assertEqual(before_mtime, guide.stat().st_mtime_ns, "pre-existing guide must not be rewritten")
+        self.assertEqual(set(PAYLOAD_RELS) | {sp.ROOT_GUIDE_NAME, "opencode.json"}, sp.rel_files(dest))
+        backups = dest / sp.BACKUP_DIR_NAME
+        if backups.is_dir():
+            self.assertEqual(
+                [], [p for p in backups.rglob(sp.ROOT_GUIDE_NAME)],
+                "the guide must never be backed up (it is not a managed file)",
+            )
+
+    def test_standalone_wrapper_collisions_refused_without_replace_before_any_write(self):
+        dest = self.tmp / "coll3"
+        (dest / "commands").mkdir(parents=True)
+        originals = {}
+        for rel in STANDALONE_RELS:
+            target = dest / rel
+            content = "OLD %s\n" % rel
+            target.write_text(content, encoding="utf-8")
+            originals[rel] = content
+        r = self.run_cli(["--target", str(dest)])
+        self.assertNotEqual(
+            0, r.returncode,
+            "RED: collisions on review/doc/security must be refused without --replace: " + self.out(r),
+        )
+        for rel, content in originals.items():
+            self.assertEqual(content, (dest / rel).read_text(encoding="utf-8"))
+        self.assertEqual(
+            set(STANDALONE_RELS), sp.rel_files(dest),
+            "refusal must happen before ANY write (no partial payload, no backups, no lock)",
+        )
+        self.assertFalse((dest / sp.BACKUP_DIR_NAME).exists())
+
+    def test_standalone_wrapper_collisions_replaced_with_exact_backup_with_replace(self):
+        dest = self.tmp / "repl3"
+        (dest / "commands").mkdir(parents=True)
+        originals = {}
+        for rel in STANDALONE_RELS:
+            target = dest / rel
+            content = "OLD %s\n" % rel
+            target.write_text(content, encoding="utf-8")
+            originals[rel] = content
+        r = self.run_cli(["--target", str(dest), "--replace"])
+        self.assertEqual(0, r.returncode, self.out(r))
+        for rel in STANDALONE_RELS:
+            src = sp.REPO_ROOT / "config" / rel
+            if not src.is_file():
+                self.fail("RED: payload source %s is missing (standalone wrapper not created yet)" % rel)
+            self.assertEqual(
+                src.read_bytes(), (dest / rel).read_bytes(),
+                "with --replace the wrapper must be replaced by the payload bytes: " + rel,
+            )
+        backups = dest / sp.BACKUP_DIR_NAME
+        run_dirs = [p for p in backups.iterdir() if p.is_dir()]
+        self.assertEqual(1, len(run_dirs), "exactly one backup run dir expected")
+        for rel, content in originals.items():
+            backup_file = run_dirs[0] / rel
+            self.assertTrue(backup_file.is_file(), "backup must preserve the relative path: " + rel)
+            self.assertEqual(content, backup_file.read_text(encoding="utf-8"), "backup must be byte-exact: " + rel)
+
+    def test_embedded_commands_collision_refused_even_with_replace(self):
+        dest = self.tmp / "embcmd"
+        (dest / "commands").mkdir(parents=True)
+        cfg = dest / "opencode.json"
+        cfg.write_text(
+            json.dumps({"commands": {"review": {"description": "x"}, "doc": {}, "security": {}}}),
+            encoding="utf-8",
+        )
+        (dest / "commands" / "em.md").write_text("OLD\n", encoding="utf-8")
+        original_cfg = cfg.read_text(encoding="utf-8")
+        r = self.run_cli(["--target", str(dest), "--set-defaults", "--replace"])
+        self.assertNotEqual(
+            0, r.returncode,
+            "RED: embedded commands.review/doc/security entries must be refused even with --replace: "
+            + self.out(r),
+        )
+        self.assertEqual(original_cfg, cfg.read_text(encoding="utf-8"))
+        self.assertEqual("OLD\n", (dest / "commands" / "em.md").read_text(encoding="utf-8"))
+        self.assertEqual({"opencode.json", "commands/em.md"}, sp.rel_files(dest), "refusal before any write")
+        self.assertFalse((dest / sp.BACKUP_DIR_NAME).exists())
+
+    def test_local_json_build_plan_keys_preserved(self):
+        # Without --set-defaults: exact bytes untouched even with --replace.
+        dest = self.tmp / "bp1"
+        dest.mkdir()
+        cfg = dest / "opencode.json"
+        original = json.dumps(
+            {"build": {"custom": True}, "plan": {"custom": True}, "model": "other/model",
+             "default_agent": "build"}, indent=1
+        ) + "\n"
+        cfg.write_text(original, encoding="utf-8")
+        r = self.run_cli(["--target", str(dest), "--replace"])
+        self.assertEqual(0, r.returncode, self.out(r))
+        self.assertEqual(original, cfg.read_text(encoding="utf-8"), "build/plan JSON must stay byte-identical")
+        # With --set-defaults --replace: semantics preserved, only the 2 defaults change.
+        r = self.run_cli(["--target", str(dest), "--set-defaults", "--replace"])
+        self.assertEqual(0, r.returncode, self.out(r))
+        after = json.loads(cfg.read_text(encoding="utf-8"))
+        self.assertEqual({"custom": True}, after["build"], "build key must be preserved semantically")
+        self.assertEqual({"custom": True}, after["plan"], "plan key must be preserved semantically")
+        self.assertEqual(sp.MODEL_EM, after["model"])
+        self.assertEqual("EngineeringManager", after["default_agent"])
+
+    def test_second_run_on_same_target_is_idempotent(self):
+        dest = self.tmp / "twice"
+        r = self.run_cli(["--target", str(dest), "--set-defaults"])
+        self.assertEqual(0, r.returncode, self.out(r))
+        before = {
+            rel: ((dest / rel).read_bytes(), (dest / rel).stat().st_mtime_ns)
+            for rel in sp.rel_files(dest)
+        }
+        r = self.run_cli(["--target", str(dest), "--set-defaults"])
+        self.assertEqual(0, r.returncode, "second run must succeed: " + self.out(r))
+        self.assertEqual(set(before), sp.rel_files(dest), "second run must not add/remove files")
+        for rel, (content, mtime) in before.items():
+            self.assertEqual(content, (dest / rel).read_bytes(), "idempotent bytes: " + rel)
+            self.assertEqual(mtime, (dest / rel).stat().st_mtime_ns, "idempotent mtime: " + rel)
+        self.assertFalse((dest / sp.BACKUP_DIR_NAME).exists(), "no backups on an idempotent second run")
 
 
 if __name__ == "__main__":

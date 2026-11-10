@@ -25,7 +25,7 @@ AGENTS = (
     "EngineeringManager", "Explorer", "Architect", "Tester", "Developer",
     "Reviewer", "Documentalist", "SecurityOfficer",
 )
-COMMANDS = ("em", "em-review", "em-doc", "em-security", "em-audit")
+COMMANDS = ("em", "em-review", "em-doc", "em-security", "em-audit", "review", "doc", "security")
 PAYLOAD = tuple(f"agents/{name}.md" for name in AGENTS) + tuple(
     f"commands/{name}.md" for name in COMMANDS
 )

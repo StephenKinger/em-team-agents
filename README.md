@@ -48,17 +48,23 @@ is not guaranteed; validation was on Linux only.
 config/
   opencode.json           # Minimal, opt-in default agent/model template
   agents/                 # Eight native V2 Markdown profiles
-  commands/               # Five native V2 slash-command templates
+  commands/               # Eight native V2 slash-command templates
 scripts/install.py        # Single-file, stdlib-only installer
 tests/                    # Portable unittest suite
 README.md
 INSTALL.md
+MULTI-AGENTS.md            # Operator guide, repository-only; never installed
 LICENSE
 ```
 
 `config/` is a source payload, NOT an auto-active `.opencode/` directory. No
 personal global configuration is exported or discovered by the installer.
 The default template contains only `$schema`, `default_agent` and `model`.
+Local build/plan (including build-prefixed variants) customizations and legacy
+`Concepteur` profiles remain local and untouched. Private machine files such as
+service.json, credentials, provider settings and backups are excluded.
+See [MULTI-AGENTS.md](MULTI-AGENTS.md) for the operator guide; it stays in this
+repository and is not installed.
 
 ## Workflow and roles
 
@@ -84,8 +90,11 @@ specialists or TDD. Model assignments optimize cost, not workflow gates.
 | Documentalist | subagent | Optional usage documentation for all scoped modules/functions, explaining complex reasons | `openrouter/openai/gpt-6-luna` |
 | SecurityOfficer | subagent | Optional read-only security analysis and current web advisory verification | `openrouter/openai/gpt-6.1-sol` |
 
-Reviewer, Documentalist and SecurityOfficer run **only on explicit request after
-the mandatory cycle**. On frozen code, requested roles may work in parallel.
+Reviewer, Documentalist and SecurityOfficer run **only on explicit request**,
+through two entry paths: standalone commands delegate immediately without
+requiring, reconstructing or verifying completion of the mandatory cycle;
+post-cycle commands retain that completion check. A standalone report neither
+proves nor completes the functional workflow. On frozen code, requested roles may work in parallel.
 Documentation edits require re-examination of affected findings and executable
 examples. Audits do not authorize automatic application fixes. SecurityOfficer
 must check current advisories against resolved versions and cite URLs and
@@ -97,7 +106,11 @@ and results, plus `response_language`, and preserves them across compaction.
 
 ## Commands and languages
 
-All commands select EngineeringManager and remain in the current session.
+All eight commands select EngineeringManager and remain in the current session
+(`subagent: false`), without a command-level `model` override.
+
+**Warning: `/review` overrides OpenCode's native command of the same name.**
+Higher-priority project configuration may override this definition in turn.
 
 | Command | Purpose |
 | --- | --- |
@@ -106,6 +119,16 @@ All commands select EngineeringManager and remain in the current session.
 | `/em-doc [scope]` | Explicitly request Documentalist after the cycle |
 | `/em-security [scope]` | Explicitly request SecurityOfficer after the cycle |
 | `/em-audit [scope]` | Explicitly request all three optional roles after the cycle |
+| `/review [scope]` | Standalone: immediately delegate to read-only Reviewer, without a cycle check |
+| `/doc [scope]` | Standalone: immediately delegate documentation-only work to Documentalist, without a cycle check |
+| `/security [scope]` | Standalone: immediately delegate to read-only SecurityOfficer, without a cycle check |
+
+The four `/em-*` commands use the post-cycle path. Standalone commands launch
+only the named specialist, not the functional workflow. Necessary scope/language
+clarifications go through EM; missing prior design or RED/GREEN is not a blocker.
+No optional command authorizes autonomous functional fixes: proposed corrections
+return to EM's mandatory workflow with applicable approval and regression tests,
+without starting it automatically.
 
 Profiles respond in the language of the latest actual human request unless the
 user explicitly requests another language. EM transmits that preference in

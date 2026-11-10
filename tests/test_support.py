@@ -7,12 +7,14 @@ file contains no scannable secret-like literal and no real credentials.
 
 from __future__ import annotations
 
+import json
 import sys
 import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import support_pkg as sp
+import expected_payload as ep
 
 VALID_FRONTMATTER = (
     "---\n"
@@ -93,6 +95,34 @@ class ScannerTest(unittest.TestCase):
 
     def test_benign_english_text_has_no_findings(self):
         self.assertEqual([], sp.scan_text("Just an English sentence about installation."))
+
+
+class FrozenPayloadTest(unittest.TestCase):
+    """Self-consistency of the frozen A2-R expectations (tests/expected_payload.py)."""
+
+    def test_frozen_module_shape(self):
+        self.assertEqual(("review", "doc", "security"), ep.STANDALONE_COMMAND_NAMES)
+        self.assertEqual(4, len(ep.MODIFIED_PROFILE_NAMES))
+        self.assertEqual(sorted(ep.STANDALONE_COMMAND_NAMES), sorted(ep.EXPECTED_COMMAND_TEXT))
+        self.assertEqual(sorted(ep.MODIFIED_PROFILE_NAMES), sorted(ep.EXPECTED_PROFILE_FRONTMATTER))
+        self.assertEqual(sorted(ep.MODIFIED_PROFILE_NAMES), sorted(ep.PROFILE_BODY_SNIPPETS))
+        for name, text in ep.EXPECTED_COMMAND_TEXT.items():
+            fields, _perms, body = sp.parse_frontmatter(text)
+            self.assertEqual("EngineeringManager", fields["agent"])
+            self.assertEqual("false", fields["subagent"])
+            self.assertNotIn("model", fields)
+            self.assertIn("$ARGUMENTS", body)
+        for name, block in ep.EXPECTED_PROFILE_FRONTMATTER.items():
+            fields, perms, _body = sp.parse_frontmatter(block + "\nbody\n")
+            self.assertEqual(sp.EXPECTED_MODELS[name], fields["model"])
+            self.assertEqual(sp.EXPECTED_PERMISSIONS[name], perms)
+        cfg = json.loads(ep.EXPECTED_OPENCODE_JSON_TEXT)
+        self.assertEqual({"$schema", "default_agent", "model"}, set(cfg))
+        self.assertEqual(len(ep.FROZEN_SHA256), 3 + 4 + 1)
+
+    def test_frozen_sources_contain_no_secret_or_home_path(self):
+        blob = repr(ep.EXPECTED_COMMAND_TEXT) + repr(ep.EXPECTED_PROFILE_FRONTMATTER) + ep.EXPECTED_OPENCODE_JSON_TEXT
+        self.assertEqual([], sp.scan_text(blob))
 
 
 if __name__ == "__main__":

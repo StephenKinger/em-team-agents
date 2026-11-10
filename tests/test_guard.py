@@ -24,8 +24,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import support_pkg as sp
 
 # Publication allowlist: exact root files plus these directories. Anything
-# else in the repo fails - before AND after production.
-ALLOWED_ROOT_FILES = {"LICENSE", "README.md", "INSTALL.md", ".gitignore"}
+# else in the repo fails - before AND after production. A2-R adds the English
+# MULTI-AGENTS.md guide at the repo root (shipped, but NOT installed by the
+# installer: scripts/install.py manages only config/ payload files).
+ALLOWED_ROOT_FILES = {"LICENSE", "README.md", "INSTALL.md", ".gitignore", "MULTI-AGENTS.md"}
 ALLOWED_DIRS = ("config/", "scripts/", "tests/")
 
 # Tokens proving the public suite does not couple to the repo git index or to

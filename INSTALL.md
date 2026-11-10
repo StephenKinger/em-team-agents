@@ -57,11 +57,14 @@ python3 scripts/install.py --target ./custom-opencode --dry-run
 python3 scripts/install.py --target ./custom-opencode
 ```
 
-The no-defaults variant installs only eight profiles and five commands; it never
+The no-defaults variant installs only eight profiles and eight commands; it never
 creates or modifies JSON, even with `--replace`. The script uses an explicit
 allowlist, not an export of the user's global directory. It never copies
 provider configuration, build/plan customization, auth.json, service.json,
-credentials, logs or machine-specific backups.
+credentials, logs or machine-specific backups. Build-prefixed variants and legacy
+`Concepteur` profiles also remain local and untouched. The operator guide
+[MULTI-AGENTS.md](MULTI-AGENTS.md) stays at the repository root and is never
+installed; it is not part of the allowlisted payload.
 
 ## Preflight, JSON and conflicts
 
@@ -95,7 +98,7 @@ IDs are refused even with `--replace`; review and resolve them manually first.
 ### Manual JSONC handling
 
 If using JSONC, do not try to force the installer. Manually copy only the eight
-reviewed files from `config/agents/` and five from `config/commands/` into the
+reviewed files from `config/agents/` and eight from `config/commands/` into the
 corresponding destination directories. Back up existing files privately before
 replacing anything. Merge the two defaults into your JSONC by hand only if
 desired, preserving comments, unrelated settings and native permissions. Resolve
@@ -177,6 +180,37 @@ OpenCode hot-reloads configuration, agents and commands after saves; no restart
 is needed to apply them. Use `/reload` to force a reload if needed. This package
 does not alter terminal-only `cli.json` settings.
 
+### Eight commands, two optional entry paths
+
+All eight commands select EngineeringManager in the current session
+(`subagent: false`) without their own `model` field:
+
+| Command | Entry path and behavior |
+| --- | --- |
+| `/em [request]` | Mandatory functional workflow: Explorer, Architect, user validation, Tester/RED, Developer/GREEN, EM summary |
+| `/review [scope]` | Standalone: immediate delegation to Reviewer |
+| `/doc [scope]` | Standalone: immediate delegation to Documentalist |
+| `/security [scope]` | Standalone: immediate delegation to SecurityOfficer |
+| `/em-review [scope]` | Post-cycle: Reviewer after EM verifies completion |
+| `/em-doc [scope]` | Post-cycle: Documentalist after EM verifies completion |
+| `/em-security [scope]` | Post-cycle: SecurityOfficer after EM verifies completion |
+| `/em-audit [scope]` | Post-cycle: all three optional roles after EM verifies completion |
+
+**Warning: `/review` overrides the native OpenCode command of the same name.**
+Review this intentional replacement before installing. More specific project
+configuration may override the installed definition.
+
+Standalone commands do not require, reconstruct or verify completion of the
+mandatory cycle. EM launches only the named specialist; missing prior design,
+approval or RED/GREEN does not block this path. EM asks only necessary scope or
+language clarifications. Reviewer and SecurityOfficer are read-only;
+Documentalist may edit only documentation, comments and docstrings with no
+functional effect. No optional command authorizes automatic functional fixes.
+Proposed corrections return to the mandatory workflow with applicable approval
+and a regression test, without launching it automatically. A standalone report
+neither proves nor completes that workflow. Stable-reference coordination still
+applies on either path; the post-cycle prerequisites remain unchanged.
+
 ## Verification
 
 Run the portable public suite:
@@ -206,7 +240,7 @@ opencode api get "/api/model/default?$location_query"
 ```
 
 Confirm the returned location, eight IDs, English prompts, ordered role
-permissions, Architect delegation, five command names/descriptions and default
+permissions, Architect delegation, eight command names/descriptions and default
 model. On the tested API, `/api/command` exposes names/descriptions, not template
 bodies: check installed template bytes against the payload separately. If
 necessary read `/api/config` with the same location query privately to verify
