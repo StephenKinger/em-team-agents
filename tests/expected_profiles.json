@@ -1,0 +1,2922 @@
+{
+  "EngineeringManager": {
+    "frontmatter": "---\ndescription: EM orchestrates Explorer, Architect, user validation, Tester then Developer; optional audits on request.\nmode: primary\nmodel: openrouter/mistralai/mistral-large-4-0\ncolor: \"#2563eb\"\npermissions:\n  - { action: \"*\", resource: \"*\", effect: deny }\n  - { action: read, resource: \"*\", effect: allow }\n  - { action: read, resource: \"*.env\", effect: deny }\n  - { action: read, resource: \"*.env.*\", effect: deny }\n  - { action: read, resource: \"*.env.example\", effect: allow }\n  - { action: read, resource: \"secrets/**\", effect: deny }\n  - { action: read, resource: \"credentials.*\", effect: deny }\n  - { action: read, resource: \"**/secrets/**\", effect: deny }\n  - { action: read, resource: \"**/credentials.*\", effect: deny }\n  - { action: read, resource: \"~/.ssh/**\", effect: deny }\n  - { action: read, resource: \"~/.aws/**\", effect: deny }\n  - { action: read, resource: \"~/.azure/**\", effect: deny }\n  - { action: read, resource: \"~/.kube/**\", effect: deny }\n  - { action: read, resource: \"~/.gnupg/**\", effect: deny }\n  - { action: read, resource: \"~/.config/gcloud/**\", effect: deny }\n  - { action: read, resource: \"~/.password-store/**\", effect: deny }\n  - { action: read, resource: \"~/.local/share/keyrings/**\", effect: deny }\n  - { action: read, resource: \"~/.vault-token\", effect: deny }\n  - { action: read, resource: \"~/.netrc\", effect: deny }\n  - { action: read, resource: \"~/.npmrc\", effect: deny }\n  - { action: read, resource: \"~/.pypirc\", effect: deny }\n  - { action: read, resource: \"~/.docker/config.json\", effect: deny }\n  - { action: read, resource: \"~/.config/gh/**\", effect: deny }\n  - { action: read, resource: \"~/.terraform.d/**\", effect: deny }\n  - { action: read, resource: \"~/.bash_history\", effect: deny }\n  - { action: read, resource: \"~/.zsh_history\", effect: deny }\n  - { action: read, resource: \"~/.git-credentials\", effect: deny }\n  - { action: read, resource: \"~/.config/sops/**\", effect: deny }\n  - { action: read, resource: \"~/.config/opencode/opencode.json*\", effect: deny }\n  - { action: glob, resource: \"*\", effect: allow }\n  - { action: grep, resource: \"*\", effect: allow }\n  - { action: edit, resource: \".opencode/em/*\", effect: allow }\n  - { action: edit, resource: \"*/.opencode/em/*\", effect: allow }\n  - { action: shell, resource: \"*\", effect: ask }\n  - { action: shell, resource: \"git *\", effect: allow }\n  - { action: shell, resource: \"git -*\", effect: deny }\n  - { action: shell, resource: \"git -C *\", effect: ask }\n  - { action: shell, resource: \"git push*\", effect: deny }\n  - { action: shell, resource: \"git -C * push*\", effect: deny }\n  - { action: shell, resource: \"git send-pack*\", effect: deny }\n  - { action: shell, resource: \"git remote *\", effect: allow }\n  - { action: shell, resource: \"python *\", effect: allow }\n  - { action: shell, resource: \"python3 *\", effect: allow }\n  - { action: shell, resource: \"pytest *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/python *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/python3 *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/pytest *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/python *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/python3 *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/pytest *\", effect: allow }\n  - { action: shell, resource: \"pwd *\", effect: allow }\n  - { action: shell, resource: \"ls *\", effect: allow }\n  - { action: shell, resource: \"cat *\", effect: allow }\n  - { action: shell, resource: \"head *\", effect: allow }\n  - { action: shell, resource: \"tail *\", effect: allow }\n  - { action: shell, resource: \"grep *\", effect: allow }\n  - { action: shell, resource: \"rg *\", effect: allow }\n  - { action: shell, resource: \"find *\", effect: allow }\n  - { action: shell, resource: \"sort *\", effect: allow }\n  - { action: shell, resource: \"uniq *\", effect: allow }\n  - { action: shell, resource: \"wc *\", effect: allow }\n  - { action: shell, resource: \"diff *\", effect: allow }\n  - { action: shell, resource: \"which *\", effect: allow }\n  - { action: shell, resource: \"echo *\", effect: allow }\n  - { action: shell, resource: \"sed *\", effect: allow }\n  - { action: shell, resource: \"awk *\", effect: allow }\n  - { action: shell, resource: \"test *\", effect: allow }\n  - { action: shell, resource: \"xargs *\", effect: allow }\n  - { action: external_directory, resource: \"*\", effect: ask }\n  - { action: question, resource: \"*\", effect: allow }\n  - { action: skill, resource: \"*\", effect: allow }\n  - { action: webfetch, resource: \"*\", effect: allow }\n  - { action: websearch, resource: \"*\", effect: allow }\n  # Code Mode is needed for worktree_create and session_move. Nested tools\n  # remain subject to their own permissions; do not enable MCP actions here.\n  - { action: execute, resource: \"*\", effect: allow }\n  - { action: subagent, resource: Explorer, effect: allow }\n  - { action: subagent, resource: Architect, effect: allow }\n  - { action: subagent, resource: Tester, effect: allow }\n  - { action: subagent, resource: Developer, effect: allow }\n  - { action: subagent, resource: Reviewer, effect: allow }\n  - { action: subagent, resource: Documentalist, effect: allow }\n  - { action: subagent, resource: SecurityOfficer, effect: allow }\n---\n",
+    "permissions": [
+      [
+        "*",
+        "*",
+        "deny"
+      ],
+      [
+        "read",
+        "*",
+        "allow"
+      ],
+      [
+        "read",
+        "*.env",
+        "deny"
+      ],
+      [
+        "read",
+        "*.env.*",
+        "deny"
+      ],
+      [
+        "read",
+        "*.env.example",
+        "allow"
+      ],
+      [
+        "read",
+        "secrets/**",
+        "deny"
+      ],
+      [
+        "read",
+        "credentials.*",
+        "deny"
+      ],
+      [
+        "read",
+        "**/secrets/**",
+        "deny"
+      ],
+      [
+        "read",
+        "**/credentials.*",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.ssh/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.aws/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.azure/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.kube/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.gnupg/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/gcloud/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.password-store/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.local/share/keyrings/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.vault-token",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.netrc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.npmrc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.pypirc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.docker/config.json",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/gh/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.terraform.d/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.bash_history",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.zsh_history",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.git-credentials",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/sops/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/opencode/opencode.json*",
+        "deny"
+      ],
+      [
+        "glob",
+        "*",
+        "allow"
+      ],
+      [
+        "grep",
+        "*",
+        "allow"
+      ],
+      [
+        "edit",
+        ".opencode/em/*",
+        "allow"
+      ],
+      [
+        "edit",
+        "*/.opencode/em/*",
+        "allow"
+      ],
+      [
+        "shell",
+        "*",
+        "ask"
+      ],
+      [
+        "shell",
+        "git *",
+        "allow"
+      ],
+      [
+        "shell",
+        "git -*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git -C *",
+        "ask"
+      ],
+      [
+        "shell",
+        "git push*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git -C * push*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git send-pack*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git remote *",
+        "allow"
+      ],
+      [
+        "shell",
+        "python *",
+        "allow"
+      ],
+      [
+        "shell",
+        "python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        "pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/python *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/python *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        "pwd *",
+        "allow"
+      ],
+      [
+        "shell",
+        "ls *",
+        "allow"
+      ],
+      [
+        "shell",
+        "cat *",
+        "allow"
+      ],
+      [
+        "shell",
+        "head *",
+        "allow"
+      ],
+      [
+        "shell",
+        "tail *",
+        "allow"
+      ],
+      [
+        "shell",
+        "grep *",
+        "allow"
+      ],
+      [
+        "shell",
+        "rg *",
+        "allow"
+      ],
+      [
+        "shell",
+        "find *",
+        "allow"
+      ],
+      [
+        "shell",
+        "sort *",
+        "allow"
+      ],
+      [
+        "shell",
+        "uniq *",
+        "allow"
+      ],
+      [
+        "shell",
+        "wc *",
+        "allow"
+      ],
+      [
+        "shell",
+        "diff *",
+        "allow"
+      ],
+      [
+        "shell",
+        "which *",
+        "allow"
+      ],
+      [
+        "shell",
+        "echo *",
+        "allow"
+      ],
+      [
+        "shell",
+        "sed *",
+        "allow"
+      ],
+      [
+        "shell",
+        "awk *",
+        "allow"
+      ],
+      [
+        "shell",
+        "test *",
+        "allow"
+      ],
+      [
+        "shell",
+        "xargs *",
+        "allow"
+      ],
+      [
+        "external_directory",
+        "*",
+        "ask"
+      ],
+      [
+        "question",
+        "*",
+        "allow"
+      ],
+      [
+        "skill",
+        "*",
+        "allow"
+      ],
+      [
+        "webfetch",
+        "*",
+        "allow"
+      ],
+      [
+        "websearch",
+        "*",
+        "allow"
+      ],
+      [
+        "execute",
+        "*",
+        "allow"
+      ],
+      [
+        "subagent",
+        "Explorer",
+        "allow"
+      ],
+      [
+        "subagent",
+        "Architect",
+        "allow"
+      ],
+      [
+        "subagent",
+        "Tester",
+        "allow"
+      ],
+      [
+        "subagent",
+        "Developer",
+        "allow"
+      ],
+      [
+        "subagent",
+        "Reviewer",
+        "allow"
+      ],
+      [
+        "subagent",
+        "Documentalist",
+        "allow"
+      ],
+      [
+        "subagent",
+        "SecurityOfficer",
+        "allow"
+      ]
+    ]
+  },
+  "Explorer": {
+    "frontmatter": "---\ndescription: Investigates source code, flows and tests; reports facts to EM without editing files.\nmode: subagent\nmodel: openrouter/openai/gpt-6-luna\ncolor: \"#0891b2\"\npermissions:\n  - { action: \"*\", resource: \"*\", effect: deny }\n  - { action: read, resource: \"*\", effect: allow }\n  - { action: read, resource: \"*.env\", effect: deny }\n  - { action: read, resource: \"*.env.*\", effect: deny }\n  - { action: read, resource: \"*.env.example\", effect: allow }\n  - { action: read, resource: \"secrets/**\", effect: deny }\n  - { action: read, resource: \"credentials.*\", effect: deny }\n  - { action: read, resource: \"**/secrets/**\", effect: deny }\n  - { action: read, resource: \"**/credentials.*\", effect: deny }\n  - { action: read, resource: \"~/.ssh/**\", effect: deny }\n  - { action: read, resource: \"~/.aws/**\", effect: deny }\n  - { action: read, resource: \"~/.azure/**\", effect: deny }\n  - { action: read, resource: \"~/.kube/**\", effect: deny }\n  - { action: read, resource: \"~/.gnupg/**\", effect: deny }\n  - { action: read, resource: \"~/.config/gcloud/**\", effect: deny }\n  - { action: read, resource: \"~/.password-store/**\", effect: deny }\n  - { action: read, resource: \"~/.local/share/keyrings/**\", effect: deny }\n  - { action: read, resource: \"~/.vault-token\", effect: deny }\n  - { action: read, resource: \"~/.netrc\", effect: deny }\n  - { action: read, resource: \"~/.npmrc\", effect: deny }\n  - { action: read, resource: \"~/.pypirc\", effect: deny }\n  - { action: read, resource: \"~/.docker/config.json\", effect: deny }\n  - { action: read, resource: \"~/.config/gh/**\", effect: deny }\n  - { action: read, resource: \"~/.terraform.d/**\", effect: deny }\n  - { action: read, resource: \"~/.bash_history\", effect: deny }\n  - { action: read, resource: \"~/.zsh_history\", effect: deny }\n  - { action: read, resource: \"~/.git-credentials\", effect: deny }\n  - { action: read, resource: \"~/.config/sops/**\", effect: deny }\n  - { action: read, resource: \"~/.config/opencode/opencode.json*\", effect: deny }\n  - { action: glob, resource: \"*\", effect: allow }\n  - { action: grep, resource: \"*\", effect: allow }\n  - { action: external_directory, resource: \"*\", effect: ask }\n  - { action: skill, resource: \"*\", effect: allow }\n  - { action: webfetch, resource: \"*\", effect: allow }\n  - { action: websearch, resource: \"*\", effect: allow }\n  - { action: shell, resource: \"*\", effect: ask }\n  - { action: shell, resource: \"git *\", effect: allow }\n  - { action: shell, resource: \"git -*\", effect: deny }\n  - { action: shell, resource: \"git -C *\", effect: ask }\n  - { action: shell, resource: \"git push*\", effect: deny }\n  - { action: shell, resource: \"git -C * push*\", effect: deny }\n  - { action: shell, resource: \"git send-pack*\", effect: deny }\n  - { action: shell, resource: \"git remote *\", effect: allow }\n  - { action: shell, resource: \"python *\", effect: allow }\n  - { action: shell, resource: \"python3 *\", effect: allow }\n  - { action: shell, resource: \"pytest *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/python *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/python3 *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/pytest *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/python *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/python3 *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/pytest *\", effect: allow }\n  - { action: shell, resource: \"pwd *\", effect: allow }\n  - { action: shell, resource: \"ls *\", effect: allow }\n  - { action: shell, resource: \"cat *\", effect: allow }\n  - { action: shell, resource: \"head *\", effect: allow }\n  - { action: shell, resource: \"tail *\", effect: allow }\n  - { action: shell, resource: \"grep *\", effect: allow }\n  - { action: shell, resource: \"rg *\", effect: allow }\n  - { action: shell, resource: \"find *\", effect: allow }\n  - { action: shell, resource: \"sort *\", effect: allow }\n  - { action: shell, resource: \"uniq *\", effect: allow }\n  - { action: shell, resource: \"wc *\", effect: allow }\n  - { action: shell, resource: \"diff *\", effect: allow }\n  - { action: shell, resource: \"which *\", effect: allow }\n  - { action: shell, resource: \"echo *\", effect: allow }\n  - { action: shell, resource: \"sed *\", effect: allow }\n  - { action: shell, resource: \"awk *\", effect: allow }\n  - { action: shell, resource: \"test *\", effect: allow }\n  - { action: shell, resource: \"xargs *\", effect: allow }\n---\n",
+    "permissions": [
+      [
+        "*",
+        "*",
+        "deny"
+      ],
+      [
+        "read",
+        "*",
+        "allow"
+      ],
+      [
+        "read",
+        "*.env",
+        "deny"
+      ],
+      [
+        "read",
+        "*.env.*",
+        "deny"
+      ],
+      [
+        "read",
+        "*.env.example",
+        "allow"
+      ],
+      [
+        "read",
+        "secrets/**",
+        "deny"
+      ],
+      [
+        "read",
+        "credentials.*",
+        "deny"
+      ],
+      [
+        "read",
+        "**/secrets/**",
+        "deny"
+      ],
+      [
+        "read",
+        "**/credentials.*",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.ssh/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.aws/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.azure/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.kube/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.gnupg/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/gcloud/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.password-store/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.local/share/keyrings/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.vault-token",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.netrc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.npmrc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.pypirc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.docker/config.json",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/gh/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.terraform.d/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.bash_history",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.zsh_history",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.git-credentials",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/sops/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/opencode/opencode.json*",
+        "deny"
+      ],
+      [
+        "glob",
+        "*",
+        "allow"
+      ],
+      [
+        "grep",
+        "*",
+        "allow"
+      ],
+      [
+        "external_directory",
+        "*",
+        "ask"
+      ],
+      [
+        "skill",
+        "*",
+        "allow"
+      ],
+      [
+        "webfetch",
+        "*",
+        "allow"
+      ],
+      [
+        "websearch",
+        "*",
+        "allow"
+      ],
+      [
+        "shell",
+        "*",
+        "ask"
+      ],
+      [
+        "shell",
+        "git *",
+        "allow"
+      ],
+      [
+        "shell",
+        "git -*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git -C *",
+        "ask"
+      ],
+      [
+        "shell",
+        "git push*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git -C * push*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git send-pack*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git remote *",
+        "allow"
+      ],
+      [
+        "shell",
+        "python *",
+        "allow"
+      ],
+      [
+        "shell",
+        "python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        "pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/python *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/python *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        "pwd *",
+        "allow"
+      ],
+      [
+        "shell",
+        "ls *",
+        "allow"
+      ],
+      [
+        "shell",
+        "cat *",
+        "allow"
+      ],
+      [
+        "shell",
+        "head *",
+        "allow"
+      ],
+      [
+        "shell",
+        "tail *",
+        "allow"
+      ],
+      [
+        "shell",
+        "grep *",
+        "allow"
+      ],
+      [
+        "shell",
+        "rg *",
+        "allow"
+      ],
+      [
+        "shell",
+        "find *",
+        "allow"
+      ],
+      [
+        "shell",
+        "sort *",
+        "allow"
+      ],
+      [
+        "shell",
+        "uniq *",
+        "allow"
+      ],
+      [
+        "shell",
+        "wc *",
+        "allow"
+      ],
+      [
+        "shell",
+        "diff *",
+        "allow"
+      ],
+      [
+        "shell",
+        "which *",
+        "allow"
+      ],
+      [
+        "shell",
+        "echo *",
+        "allow"
+      ],
+      [
+        "shell",
+        "sed *",
+        "allow"
+      ],
+      [
+        "shell",
+        "awk *",
+        "allow"
+      ],
+      [
+        "shell",
+        "test *",
+        "allow"
+      ],
+      [
+        "shell",
+        "xargs *",
+        "allow"
+      ]
+    ]
+  },
+  "Architect": {
+    "frontmatter": "---\ndescription: Pragmatic software, application and technical design; proposes approaches and returns decisions to EM.\nmode: subagent\nmodel: openrouter/openai/gpt-6.1-sol\ncolor: \"#7c3aed\"\npermissions:\n  - { action: \"*\", resource: \"*\", effect: deny }\n  - { action: read, resource: \"*\", effect: allow }\n  - { action: read, resource: \"*.env\", effect: deny }\n  - { action: read, resource: \"*.env.*\", effect: deny }\n  - { action: read, resource: \"*.env.example\", effect: allow }\n  - { action: read, resource: \"secrets/**\", effect: deny }\n  - { action: read, resource: \"credentials.*\", effect: deny }\n  - { action: read, resource: \"**/secrets/**\", effect: deny }\n  - { action: read, resource: \"**/credentials.*\", effect: deny }\n  - { action: read, resource: \"~/.ssh/**\", effect: deny }\n  - { action: read, resource: \"~/.aws/**\", effect: deny }\n  - { action: read, resource: \"~/.azure/**\", effect: deny }\n  - { action: read, resource: \"~/.kube/**\", effect: deny }\n  - { action: read, resource: \"~/.gnupg/**\", effect: deny }\n  - { action: read, resource: \"~/.config/gcloud/**\", effect: deny }\n  - { action: read, resource: \"~/.password-store/**\", effect: deny }\n  - { action: read, resource: \"~/.local/share/keyrings/**\", effect: deny }\n  - { action: read, resource: \"~/.vault-token\", effect: deny }\n  - { action: read, resource: \"~/.netrc\", effect: deny }\n  - { action: read, resource: \"~/.npmrc\", effect: deny }\n  - { action: read, resource: \"~/.pypirc\", effect: deny }\n  - { action: read, resource: \"~/.docker/config.json\", effect: deny }\n  - { action: read, resource: \"~/.config/gh/**\", effect: deny }\n  - { action: read, resource: \"~/.terraform.d/**\", effect: deny }\n  - { action: read, resource: \"~/.bash_history\", effect: deny }\n  - { action: read, resource: \"~/.zsh_history\", effect: deny }\n  - { action: read, resource: \"~/.git-credentials\", effect: deny }\n  - { action: read, resource: \"~/.config/sops/**\", effect: deny }\n  - { action: read, resource: \"~/.config/opencode/opencode.json*\", effect: deny }\n  - { action: glob, resource: \"*\", effect: allow }\n  - { action: grep, resource: \"*\", effect: allow }\n  - { action: external_directory, resource: \"*\", effect: ask }\n  - { action: skill, resource: \"*\", effect: allow }\n  - { action: webfetch, resource: \"*\", effect: allow }\n  - { action: websearch, resource: \"*\", effect: allow }\n  - { action: shell, resource: \"*\", effect: ask }\n  - { action: shell, resource: \"git *\", effect: allow }\n  - { action: shell, resource: \"git -*\", effect: deny }\n  - { action: shell, resource: \"git -C *\", effect: ask }\n  - { action: shell, resource: \"git push*\", effect: deny }\n  - { action: shell, resource: \"git -C * push*\", effect: deny }\n  - { action: shell, resource: \"git send-pack*\", effect: deny }\n  - { action: shell, resource: \"git remote *\", effect: allow }\n  - { action: shell, resource: \"python *\", effect: allow }\n  - { action: shell, resource: \"python3 *\", effect: allow }\n  - { action: shell, resource: \"pytest *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/python *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/python3 *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/pytest *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/python *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/python3 *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/pytest *\", effect: allow }\n  - { action: shell, resource: \"pwd *\", effect: allow }\n  - { action: shell, resource: \"ls *\", effect: allow }\n  - { action: shell, resource: \"cat *\", effect: allow }\n  - { action: shell, resource: \"head *\", effect: allow }\n  - { action: shell, resource: \"tail *\", effect: allow }\n  - { action: shell, resource: \"grep *\", effect: allow }\n  - { action: shell, resource: \"rg *\", effect: allow }\n  - { action: shell, resource: \"find *\", effect: allow }\n  - { action: shell, resource: \"sort *\", effect: allow }\n  - { action: shell, resource: \"uniq *\", effect: allow }\n  - { action: shell, resource: \"wc *\", effect: allow }\n  - { action: shell, resource: \"diff *\", effect: allow }\n  - { action: shell, resource: \"which *\", effect: allow }\n  - { action: shell, resource: \"echo *\", effect: allow }\n  - { action: shell, resource: \"sed *\", effect: allow }\n  - { action: shell, resource: \"awk *\", effect: allow }\n  - { action: shell, resource: \"test *\", effect: allow }\n  - { action: shell, resource: \"xargs *\", effect: allow }\n---\n",
+    "permissions": [
+      [
+        "*",
+        "*",
+        "deny"
+      ],
+      [
+        "read",
+        "*",
+        "allow"
+      ],
+      [
+        "read",
+        "*.env",
+        "deny"
+      ],
+      [
+        "read",
+        "*.env.*",
+        "deny"
+      ],
+      [
+        "read",
+        "*.env.example",
+        "allow"
+      ],
+      [
+        "read",
+        "secrets/**",
+        "deny"
+      ],
+      [
+        "read",
+        "credentials.*",
+        "deny"
+      ],
+      [
+        "read",
+        "**/secrets/**",
+        "deny"
+      ],
+      [
+        "read",
+        "**/credentials.*",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.ssh/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.aws/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.azure/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.kube/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.gnupg/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/gcloud/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.password-store/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.local/share/keyrings/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.vault-token",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.netrc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.npmrc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.pypirc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.docker/config.json",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/gh/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.terraform.d/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.bash_history",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.zsh_history",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.git-credentials",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/sops/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/opencode/opencode.json*",
+        "deny"
+      ],
+      [
+        "glob",
+        "*",
+        "allow"
+      ],
+      [
+        "grep",
+        "*",
+        "allow"
+      ],
+      [
+        "external_directory",
+        "*",
+        "ask"
+      ],
+      [
+        "skill",
+        "*",
+        "allow"
+      ],
+      [
+        "webfetch",
+        "*",
+        "allow"
+      ],
+      [
+        "websearch",
+        "*",
+        "allow"
+      ],
+      [
+        "shell",
+        "*",
+        "ask"
+      ],
+      [
+        "shell",
+        "git *",
+        "allow"
+      ],
+      [
+        "shell",
+        "git -*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git -C *",
+        "ask"
+      ],
+      [
+        "shell",
+        "git push*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git -C * push*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git send-pack*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git remote *",
+        "allow"
+      ],
+      [
+        "shell",
+        "python *",
+        "allow"
+      ],
+      [
+        "shell",
+        "python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        "pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/python *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/python *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        "pwd *",
+        "allow"
+      ],
+      [
+        "shell",
+        "ls *",
+        "allow"
+      ],
+      [
+        "shell",
+        "cat *",
+        "allow"
+      ],
+      [
+        "shell",
+        "head *",
+        "allow"
+      ],
+      [
+        "shell",
+        "tail *",
+        "allow"
+      ],
+      [
+        "shell",
+        "grep *",
+        "allow"
+      ],
+      [
+        "shell",
+        "rg *",
+        "allow"
+      ],
+      [
+        "shell",
+        "find *",
+        "allow"
+      ],
+      [
+        "shell",
+        "sort *",
+        "allow"
+      ],
+      [
+        "shell",
+        "uniq *",
+        "allow"
+      ],
+      [
+        "shell",
+        "wc *",
+        "allow"
+      ],
+      [
+        "shell",
+        "diff *",
+        "allow"
+      ],
+      [
+        "shell",
+        "which *",
+        "allow"
+      ],
+      [
+        "shell",
+        "echo *",
+        "allow"
+      ],
+      [
+        "shell",
+        "sed *",
+        "allow"
+      ],
+      [
+        "shell",
+        "awk *",
+        "allow"
+      ],
+      [
+        "shell",
+        "test *",
+        "allow"
+      ],
+      [
+        "shell",
+        "xargs *",
+        "allow"
+      ]
+    ]
+  },
+  "Tester": {
+    "frontmatter": "---\ndescription: Prepares and runs tests before implementation, proves relevant RED and prefers real components to mocks.\nmode: subagent\nmodel: openrouter/mistralai/mistral-large-4-0\ncolor: \"#d97706\"\npermissions:\n  - { action: \"*\", resource: \"*\", effect: deny }\n  - { action: read, resource: \"*\", effect: allow }\n  - { action: read, resource: \"*.env\", effect: deny }\n  - { action: read, resource: \"*.env.*\", effect: deny }\n  - { action: read, resource: \"*.env.example\", effect: allow }\n  - { action: read, resource: \"secrets/**\", effect: deny }\n  - { action: read, resource: \"credentials.*\", effect: deny }\n  - { action: read, resource: \"**/secrets/**\", effect: deny }\n  - { action: read, resource: \"**/credentials.*\", effect: deny }\n  - { action: read, resource: \"~/.ssh/**\", effect: deny }\n  - { action: read, resource: \"~/.aws/**\", effect: deny }\n  - { action: read, resource: \"~/.azure/**\", effect: deny }\n  - { action: read, resource: \"~/.kube/**\", effect: deny }\n  - { action: read, resource: \"~/.gnupg/**\", effect: deny }\n  - { action: read, resource: \"~/.config/gcloud/**\", effect: deny }\n  - { action: read, resource: \"~/.password-store/**\", effect: deny }\n  - { action: read, resource: \"~/.local/share/keyrings/**\", effect: deny }\n  - { action: read, resource: \"~/.vault-token\", effect: deny }\n  - { action: read, resource: \"~/.netrc\", effect: deny }\n  - { action: read, resource: \"~/.npmrc\", effect: deny }\n  - { action: read, resource: \"~/.pypirc\", effect: deny }\n  - { action: read, resource: \"~/.docker/config.json\", effect: deny }\n  - { action: read, resource: \"~/.config/gh/**\", effect: deny }\n  - { action: read, resource: \"~/.terraform.d/**\", effect: deny }\n  - { action: read, resource: \"~/.bash_history\", effect: deny }\n  - { action: read, resource: \"~/.zsh_history\", effect: deny }\n  - { action: read, resource: \"~/.git-credentials\", effect: deny }\n  - { action: read, resource: \"~/.config/sops/**\", effect: deny }\n  - { action: read, resource: \"~/.config/opencode/opencode.json*\", effect: deny }\n  - { action: glob, resource: \"*\", effect: allow }\n  - { action: grep, resource: \"*\", effect: allow }\n  - { action: external_directory, resource: \"*\", effect: ask }\n  - { action: skill, resource: \"*\", effect: allow }\n  - { action: webfetch, resource: \"*\", effect: allow }\n  - { action: websearch, resource: \"*\", effect: allow }\n  - { action: edit, resource: \"*\", effect: allow }\n  - { action: shell, resource: \"*\", effect: ask }\n  - { action: shell, resource: \"git *\", effect: allow }\n  - { action: shell, resource: \"git -*\", effect: deny }\n  - { action: shell, resource: \"git -C *\", effect: ask }\n  - { action: shell, resource: \"git push*\", effect: deny }\n  - { action: shell, resource: \"git -C * push*\", effect: deny }\n  - { action: shell, resource: \"git send-pack*\", effect: deny }\n  - { action: shell, resource: \"git remote *\", effect: allow }\n  - { action: shell, resource: \"python *\", effect: allow }\n  - { action: shell, resource: \"python3 *\", effect: allow }\n  - { action: shell, resource: \"pytest *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/python *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/python3 *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/pytest *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/python *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/python3 *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/pytest *\", effect: allow }\n  - { action: shell, resource: \"pwd *\", effect: allow }\n  - { action: shell, resource: \"ls *\", effect: allow }\n  - { action: shell, resource: \"cat *\", effect: allow }\n  - { action: shell, resource: \"head *\", effect: allow }\n  - { action: shell, resource: \"tail *\", effect: allow }\n  - { action: shell, resource: \"grep *\", effect: allow }\n  - { action: shell, resource: \"rg *\", effect: allow }\n  - { action: shell, resource: \"find *\", effect: allow }\n  - { action: shell, resource: \"sort *\", effect: allow }\n  - { action: shell, resource: \"uniq *\", effect: allow }\n  - { action: shell, resource: \"wc *\", effect: allow }\n  - { action: shell, resource: \"diff *\", effect: allow }\n  - { action: shell, resource: \"which *\", effect: allow }\n  - { action: shell, resource: \"echo *\", effect: allow }\n  - { action: shell, resource: \"sed *\", effect: allow }\n  - { action: shell, resource: \"awk *\", effect: allow }\n  - { action: shell, resource: \"test *\", effect: allow }\n  - { action: shell, resource: \"xargs *\", effect: allow }\n---\n",
+    "permissions": [
+      [
+        "*",
+        "*",
+        "deny"
+      ],
+      [
+        "read",
+        "*",
+        "allow"
+      ],
+      [
+        "read",
+        "*.env",
+        "deny"
+      ],
+      [
+        "read",
+        "*.env.*",
+        "deny"
+      ],
+      [
+        "read",
+        "*.env.example",
+        "allow"
+      ],
+      [
+        "read",
+        "secrets/**",
+        "deny"
+      ],
+      [
+        "read",
+        "credentials.*",
+        "deny"
+      ],
+      [
+        "read",
+        "**/secrets/**",
+        "deny"
+      ],
+      [
+        "read",
+        "**/credentials.*",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.ssh/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.aws/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.azure/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.kube/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.gnupg/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/gcloud/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.password-store/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.local/share/keyrings/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.vault-token",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.netrc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.npmrc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.pypirc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.docker/config.json",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/gh/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.terraform.d/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.bash_history",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.zsh_history",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.git-credentials",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/sops/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/opencode/opencode.json*",
+        "deny"
+      ],
+      [
+        "glob",
+        "*",
+        "allow"
+      ],
+      [
+        "grep",
+        "*",
+        "allow"
+      ],
+      [
+        "external_directory",
+        "*",
+        "ask"
+      ],
+      [
+        "skill",
+        "*",
+        "allow"
+      ],
+      [
+        "webfetch",
+        "*",
+        "allow"
+      ],
+      [
+        "websearch",
+        "*",
+        "allow"
+      ],
+      [
+        "edit",
+        "*",
+        "allow"
+      ],
+      [
+        "shell",
+        "*",
+        "ask"
+      ],
+      [
+        "shell",
+        "git *",
+        "allow"
+      ],
+      [
+        "shell",
+        "git -*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git -C *",
+        "ask"
+      ],
+      [
+        "shell",
+        "git push*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git -C * push*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git send-pack*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git remote *",
+        "allow"
+      ],
+      [
+        "shell",
+        "python *",
+        "allow"
+      ],
+      [
+        "shell",
+        "python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        "pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/python *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/python *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        "pwd *",
+        "allow"
+      ],
+      [
+        "shell",
+        "ls *",
+        "allow"
+      ],
+      [
+        "shell",
+        "cat *",
+        "allow"
+      ],
+      [
+        "shell",
+        "head *",
+        "allow"
+      ],
+      [
+        "shell",
+        "tail *",
+        "allow"
+      ],
+      [
+        "shell",
+        "grep *",
+        "allow"
+      ],
+      [
+        "shell",
+        "rg *",
+        "allow"
+      ],
+      [
+        "shell",
+        "find *",
+        "allow"
+      ],
+      [
+        "shell",
+        "sort *",
+        "allow"
+      ],
+      [
+        "shell",
+        "uniq *",
+        "allow"
+      ],
+      [
+        "shell",
+        "wc *",
+        "allow"
+      ],
+      [
+        "shell",
+        "diff *",
+        "allow"
+      ],
+      [
+        "shell",
+        "which *",
+        "allow"
+      ],
+      [
+        "shell",
+        "echo *",
+        "allow"
+      ],
+      [
+        "shell",
+        "sed *",
+        "allow"
+      ],
+      [
+        "shell",
+        "awk *",
+        "allow"
+      ],
+      [
+        "shell",
+        "test *",
+        "allow"
+      ],
+      [
+        "shell",
+        "xargs *",
+        "allow"
+      ]
+    ]
+  },
+  "Developer": {
+    "frontmatter": "---\ndescription: Versatile senior developer; implements the approved design after relevant RED, then verifies GREEN and regressions.\nmode: subagent\nmodel: openrouter/openai/gpt-6.1-sol\ncolor: \"#16a34a\"\npermissions:\n  - { action: \"*\", resource: \"*\", effect: deny }\n  - { action: read, resource: \"*\", effect: allow }\n  - { action: read, resource: \"*.env\", effect: deny }\n  - { action: read, resource: \"*.env.*\", effect: deny }\n  - { action: read, resource: \"*.env.example\", effect: allow }\n  - { action: read, resource: \"secrets/**\", effect: deny }\n  - { action: read, resource: \"credentials.*\", effect: deny }\n  - { action: read, resource: \"**/secrets/**\", effect: deny }\n  - { action: read, resource: \"**/credentials.*\", effect: deny }\n  - { action: read, resource: \"~/.ssh/**\", effect: deny }\n  - { action: read, resource: \"~/.aws/**\", effect: deny }\n  - { action: read, resource: \"~/.azure/**\", effect: deny }\n  - { action: read, resource: \"~/.kube/**\", effect: deny }\n  - { action: read, resource: \"~/.gnupg/**\", effect: deny }\n  - { action: read, resource: \"~/.config/gcloud/**\", effect: deny }\n  - { action: read, resource: \"~/.password-store/**\", effect: deny }\n  - { action: read, resource: \"~/.local/share/keyrings/**\", effect: deny }\n  - { action: read, resource: \"~/.vault-token\", effect: deny }\n  - { action: read, resource: \"~/.netrc\", effect: deny }\n  - { action: read, resource: \"~/.npmrc\", effect: deny }\n  - { action: read, resource: \"~/.pypirc\", effect: deny }\n  - { action: read, resource: \"~/.docker/config.json\", effect: deny }\n  - { action: read, resource: \"~/.config/gh/**\", effect: deny }\n  - { action: read, resource: \"~/.terraform.d/**\", effect: deny }\n  - { action: read, resource: \"~/.bash_history\", effect: deny }\n  - { action: read, resource: \"~/.zsh_history\", effect: deny }\n  - { action: read, resource: \"~/.git-credentials\", effect: deny }\n  - { action: read, resource: \"~/.config/sops/**\", effect: deny }\n  - { action: read, resource: \"~/.config/opencode/opencode.json*\", effect: deny }\n  - { action: glob, resource: \"*\", effect: allow }\n  - { action: grep, resource: \"*\", effect: allow }\n  - { action: external_directory, resource: \"*\", effect: ask }\n  - { action: skill, resource: \"*\", effect: allow }\n  - { action: webfetch, resource: \"*\", effect: allow }\n  - { action: websearch, resource: \"*\", effect: allow }\n  - { action: edit, resource: \"*\", effect: allow }\n  - { action: shell, resource: \"*\", effect: ask }\n  - { action: shell, resource: \"git *\", effect: allow }\n  - { action: shell, resource: \"git -*\", effect: deny }\n  - { action: shell, resource: \"git -C *\", effect: ask }\n  - { action: shell, resource: \"git push*\", effect: deny }\n  - { action: shell, resource: \"git -C * push*\", effect: deny }\n  - { action: shell, resource: \"git send-pack*\", effect: deny }\n  - { action: shell, resource: \"git remote *\", effect: allow }\n  - { action: shell, resource: \"python *\", effect: allow }\n  - { action: shell, resource: \"python3 *\", effect: allow }\n  - { action: shell, resource: \"pytest *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/python *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/python3 *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/pytest *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/python *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/python3 *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/pytest *\", effect: allow }\n  - { action: shell, resource: \"pwd *\", effect: allow }\n  - { action: shell, resource: \"ls *\", effect: allow }\n  - { action: shell, resource: \"cat *\", effect: allow }\n  - { action: shell, resource: \"head *\", effect: allow }\n  - { action: shell, resource: \"tail *\", effect: allow }\n  - { action: shell, resource: \"grep *\", effect: allow }\n  - { action: shell, resource: \"rg *\", effect: allow }\n  - { action: shell, resource: \"find *\", effect: allow }\n  - { action: shell, resource: \"sort *\", effect: allow }\n  - { action: shell, resource: \"uniq *\", effect: allow }\n  - { action: shell, resource: \"wc *\", effect: allow }\n  - { action: shell, resource: \"diff *\", effect: allow }\n  - { action: shell, resource: \"which *\", effect: allow }\n  - { action: shell, resource: \"echo *\", effect: allow }\n  - { action: shell, resource: \"sed *\", effect: allow }\n  - { action: shell, resource: \"awk *\", effect: allow }\n  - { action: shell, resource: \"test *\", effect: allow }\n  - { action: shell, resource: \"xargs *\", effect: allow }\n---\n",
+    "permissions": [
+      [
+        "*",
+        "*",
+        "deny"
+      ],
+      [
+        "read",
+        "*",
+        "allow"
+      ],
+      [
+        "read",
+        "*.env",
+        "deny"
+      ],
+      [
+        "read",
+        "*.env.*",
+        "deny"
+      ],
+      [
+        "read",
+        "*.env.example",
+        "allow"
+      ],
+      [
+        "read",
+        "secrets/**",
+        "deny"
+      ],
+      [
+        "read",
+        "credentials.*",
+        "deny"
+      ],
+      [
+        "read",
+        "**/secrets/**",
+        "deny"
+      ],
+      [
+        "read",
+        "**/credentials.*",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.ssh/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.aws/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.azure/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.kube/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.gnupg/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/gcloud/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.password-store/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.local/share/keyrings/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.vault-token",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.netrc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.npmrc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.pypirc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.docker/config.json",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/gh/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.terraform.d/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.bash_history",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.zsh_history",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.git-credentials",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/sops/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/opencode/opencode.json*",
+        "deny"
+      ],
+      [
+        "glob",
+        "*",
+        "allow"
+      ],
+      [
+        "grep",
+        "*",
+        "allow"
+      ],
+      [
+        "external_directory",
+        "*",
+        "ask"
+      ],
+      [
+        "skill",
+        "*",
+        "allow"
+      ],
+      [
+        "webfetch",
+        "*",
+        "allow"
+      ],
+      [
+        "websearch",
+        "*",
+        "allow"
+      ],
+      [
+        "edit",
+        "*",
+        "allow"
+      ],
+      [
+        "shell",
+        "*",
+        "ask"
+      ],
+      [
+        "shell",
+        "git *",
+        "allow"
+      ],
+      [
+        "shell",
+        "git -*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git -C *",
+        "ask"
+      ],
+      [
+        "shell",
+        "git push*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git -C * push*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git send-pack*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git remote *",
+        "allow"
+      ],
+      [
+        "shell",
+        "python *",
+        "allow"
+      ],
+      [
+        "shell",
+        "python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        "pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/python *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/python *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        "pwd *",
+        "allow"
+      ],
+      [
+        "shell",
+        "ls *",
+        "allow"
+      ],
+      [
+        "shell",
+        "cat *",
+        "allow"
+      ],
+      [
+        "shell",
+        "head *",
+        "allow"
+      ],
+      [
+        "shell",
+        "tail *",
+        "allow"
+      ],
+      [
+        "shell",
+        "grep *",
+        "allow"
+      ],
+      [
+        "shell",
+        "rg *",
+        "allow"
+      ],
+      [
+        "shell",
+        "find *",
+        "allow"
+      ],
+      [
+        "shell",
+        "sort *",
+        "allow"
+      ],
+      [
+        "shell",
+        "uniq *",
+        "allow"
+      ],
+      [
+        "shell",
+        "wc *",
+        "allow"
+      ],
+      [
+        "shell",
+        "diff *",
+        "allow"
+      ],
+      [
+        "shell",
+        "which *",
+        "allow"
+      ],
+      [
+        "shell",
+        "echo *",
+        "allow"
+      ],
+      [
+        "shell",
+        "sed *",
+        "allow"
+      ],
+      [
+        "shell",
+        "awk *",
+        "allow"
+      ],
+      [
+        "shell",
+        "test *",
+        "allow"
+      ],
+      [
+        "shell",
+        "xargs *",
+        "allow"
+      ]
+    ]
+  },
+  "Reviewer": {
+    "frontmatter": "---\ndescription: Optional read-only review of bugs, regressions, conventions and problematic runtime flows.\nmode: subagent\nmodel: openrouter/openai/gpt-6.1-sol\ncolor: \"#db2777\"\npermissions:\n  - { action: \"*\", resource: \"*\", effect: deny }\n  - { action: read, resource: \"*\", effect: allow }\n  - { action: read, resource: \"*.env\", effect: deny }\n  - { action: read, resource: \"*.env.*\", effect: deny }\n  - { action: read, resource: \"*.env.example\", effect: allow }\n  - { action: read, resource: \"secrets/**\", effect: deny }\n  - { action: read, resource: \"credentials.*\", effect: deny }\n  - { action: read, resource: \"**/secrets/**\", effect: deny }\n  - { action: read, resource: \"**/credentials.*\", effect: deny }\n  - { action: read, resource: \"~/.ssh/**\", effect: deny }\n  - { action: read, resource: \"~/.aws/**\", effect: deny }\n  - { action: read, resource: \"~/.azure/**\", effect: deny }\n  - { action: read, resource: \"~/.kube/**\", effect: deny }\n  - { action: read, resource: \"~/.gnupg/**\", effect: deny }\n  - { action: read, resource: \"~/.config/gcloud/**\", effect: deny }\n  - { action: read, resource: \"~/.password-store/**\", effect: deny }\n  - { action: read, resource: \"~/.local/share/keyrings/**\", effect: deny }\n  - { action: read, resource: \"~/.vault-token\", effect: deny }\n  - { action: read, resource: \"~/.netrc\", effect: deny }\n  - { action: read, resource: \"~/.npmrc\", effect: deny }\n  - { action: read, resource: \"~/.pypirc\", effect: deny }\n  - { action: read, resource: \"~/.docker/config.json\", effect: deny }\n  - { action: read, resource: \"~/.config/gh/**\", effect: deny }\n  - { action: read, resource: \"~/.terraform.d/**\", effect: deny }\n  - { action: read, resource: \"~/.bash_history\", effect: deny }\n  - { action: read, resource: \"~/.zsh_history\", effect: deny }\n  - { action: read, resource: \"~/.git-credentials\", effect: deny }\n  - { action: read, resource: \"~/.config/sops/**\", effect: deny }\n  - { action: read, resource: \"~/.config/opencode/opencode.json*\", effect: deny }\n  - { action: glob, resource: \"*\", effect: allow }\n  - { action: grep, resource: \"*\", effect: allow }\n  - { action: external_directory, resource: \"*\", effect: ask }\n  - { action: skill, resource: \"*\", effect: allow }\n  - { action: webfetch, resource: \"*\", effect: allow }\n  - { action: websearch, resource: \"*\", effect: allow }\n  - { action: shell, resource: \"*\", effect: ask }\n  - { action: shell, resource: \"git *\", effect: allow }\n  - { action: shell, resource: \"git -*\", effect: deny }\n  - { action: shell, resource: \"git -C *\", effect: ask }\n  - { action: shell, resource: \"git push*\", effect: deny }\n  - { action: shell, resource: \"git -C * push*\", effect: deny }\n  - { action: shell, resource: \"git send-pack*\", effect: deny }\n  - { action: shell, resource: \"git remote *\", effect: allow }\n  - { action: shell, resource: \"python *\", effect: allow }\n  - { action: shell, resource: \"python3 *\", effect: allow }\n  - { action: shell, resource: \"pytest *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/python *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/python3 *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/pytest *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/python *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/python3 *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/pytest *\", effect: allow }\n  - { action: shell, resource: \"pwd *\", effect: allow }\n  - { action: shell, resource: \"ls *\", effect: allow }\n  - { action: shell, resource: \"cat *\", effect: allow }\n  - { action: shell, resource: \"head *\", effect: allow }\n  - { action: shell, resource: \"tail *\", effect: allow }\n  - { action: shell, resource: \"grep *\", effect: allow }\n  - { action: shell, resource: \"rg *\", effect: allow }\n  - { action: shell, resource: \"find *\", effect: allow }\n  - { action: shell, resource: \"sort *\", effect: allow }\n  - { action: shell, resource: \"uniq *\", effect: allow }\n  - { action: shell, resource: \"wc *\", effect: allow }\n  - { action: shell, resource: \"diff *\", effect: allow }\n  - { action: shell, resource: \"which *\", effect: allow }\n  - { action: shell, resource: \"echo *\", effect: allow }\n  - { action: shell, resource: \"sed *\", effect: allow }\n  - { action: shell, resource: \"awk *\", effect: allow }\n  - { action: shell, resource: \"test *\", effect: allow }\n  - { action: shell, resource: \"xargs *\", effect: allow }\n---\n",
+    "permissions": [
+      [
+        "*",
+        "*",
+        "deny"
+      ],
+      [
+        "read",
+        "*",
+        "allow"
+      ],
+      [
+        "read",
+        "*.env",
+        "deny"
+      ],
+      [
+        "read",
+        "*.env.*",
+        "deny"
+      ],
+      [
+        "read",
+        "*.env.example",
+        "allow"
+      ],
+      [
+        "read",
+        "secrets/**",
+        "deny"
+      ],
+      [
+        "read",
+        "credentials.*",
+        "deny"
+      ],
+      [
+        "read",
+        "**/secrets/**",
+        "deny"
+      ],
+      [
+        "read",
+        "**/credentials.*",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.ssh/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.aws/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.azure/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.kube/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.gnupg/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/gcloud/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.password-store/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.local/share/keyrings/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.vault-token",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.netrc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.npmrc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.pypirc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.docker/config.json",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/gh/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.terraform.d/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.bash_history",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.zsh_history",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.git-credentials",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/sops/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/opencode/opencode.json*",
+        "deny"
+      ],
+      [
+        "glob",
+        "*",
+        "allow"
+      ],
+      [
+        "grep",
+        "*",
+        "allow"
+      ],
+      [
+        "external_directory",
+        "*",
+        "ask"
+      ],
+      [
+        "skill",
+        "*",
+        "allow"
+      ],
+      [
+        "webfetch",
+        "*",
+        "allow"
+      ],
+      [
+        "websearch",
+        "*",
+        "allow"
+      ],
+      [
+        "shell",
+        "*",
+        "ask"
+      ],
+      [
+        "shell",
+        "git *",
+        "allow"
+      ],
+      [
+        "shell",
+        "git -*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git -C *",
+        "ask"
+      ],
+      [
+        "shell",
+        "git push*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git -C * push*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git send-pack*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git remote *",
+        "allow"
+      ],
+      [
+        "shell",
+        "python *",
+        "allow"
+      ],
+      [
+        "shell",
+        "python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        "pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/python *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/python *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        "pwd *",
+        "allow"
+      ],
+      [
+        "shell",
+        "ls *",
+        "allow"
+      ],
+      [
+        "shell",
+        "cat *",
+        "allow"
+      ],
+      [
+        "shell",
+        "head *",
+        "allow"
+      ],
+      [
+        "shell",
+        "tail *",
+        "allow"
+      ],
+      [
+        "shell",
+        "grep *",
+        "allow"
+      ],
+      [
+        "shell",
+        "rg *",
+        "allow"
+      ],
+      [
+        "shell",
+        "find *",
+        "allow"
+      ],
+      [
+        "shell",
+        "sort *",
+        "allow"
+      ],
+      [
+        "shell",
+        "uniq *",
+        "allow"
+      ],
+      [
+        "shell",
+        "wc *",
+        "allow"
+      ],
+      [
+        "shell",
+        "diff *",
+        "allow"
+      ],
+      [
+        "shell",
+        "which *",
+        "allow"
+      ],
+      [
+        "shell",
+        "echo *",
+        "allow"
+      ],
+      [
+        "shell",
+        "sed *",
+        "allow"
+      ],
+      [
+        "shell",
+        "awk *",
+        "allow"
+      ],
+      [
+        "shell",
+        "test *",
+        "allow"
+      ],
+      [
+        "shell",
+        "xargs *",
+        "allow"
+      ]
+    ]
+  },
+  "Documentalist": {
+    "frontmatter": "---\ndescription: Optional module/function usage documentation; explains complex sections without paraphrasing code.\nmode: subagent\nmodel: openrouter/openai/gpt-6-luna\ncolor: \"#0d9488\"\npermissions:\n  - { action: \"*\", resource: \"*\", effect: deny }\n  - { action: read, resource: \"*\", effect: allow }\n  - { action: read, resource: \"*.env\", effect: deny }\n  - { action: read, resource: \"*.env.*\", effect: deny }\n  - { action: read, resource: \"*.env.example\", effect: allow }\n  - { action: read, resource: \"secrets/**\", effect: deny }\n  - { action: read, resource: \"credentials.*\", effect: deny }\n  - { action: read, resource: \"**/secrets/**\", effect: deny }\n  - { action: read, resource: \"**/credentials.*\", effect: deny }\n  - { action: read, resource: \"~/.ssh/**\", effect: deny }\n  - { action: read, resource: \"~/.aws/**\", effect: deny }\n  - { action: read, resource: \"~/.azure/**\", effect: deny }\n  - { action: read, resource: \"~/.kube/**\", effect: deny }\n  - { action: read, resource: \"~/.gnupg/**\", effect: deny }\n  - { action: read, resource: \"~/.config/gcloud/**\", effect: deny }\n  - { action: read, resource: \"~/.password-store/**\", effect: deny }\n  - { action: read, resource: \"~/.local/share/keyrings/**\", effect: deny }\n  - { action: read, resource: \"~/.vault-token\", effect: deny }\n  - { action: read, resource: \"~/.netrc\", effect: deny }\n  - { action: read, resource: \"~/.npmrc\", effect: deny }\n  - { action: read, resource: \"~/.pypirc\", effect: deny }\n  - { action: read, resource: \"~/.docker/config.json\", effect: deny }\n  - { action: read, resource: \"~/.config/gh/**\", effect: deny }\n  - { action: read, resource: \"~/.terraform.d/**\", effect: deny }\n  - { action: read, resource: \"~/.bash_history\", effect: deny }\n  - { action: read, resource: \"~/.zsh_history\", effect: deny }\n  - { action: read, resource: \"~/.git-credentials\", effect: deny }\n  - { action: read, resource: \"~/.config/sops/**\", effect: deny }\n  - { action: read, resource: \"~/.config/opencode/opencode.json*\", effect: deny }\n  - { action: glob, resource: \"*\", effect: allow }\n  - { action: grep, resource: \"*\", effect: allow }\n  - { action: external_directory, resource: \"*\", effect: ask }\n  - { action: skill, resource: \"*\", effect: allow }\n  - { action: webfetch, resource: \"*\", effect: allow }\n  - { action: websearch, resource: \"*\", effect: allow }\n  - { action: edit, resource: \"*\", effect: ask }\n  - { action: edit, resource: \"*.md\", effect: allow }\n  - { action: edit, resource: \"*.rst\", effect: allow }\n  - { action: shell, resource: \"*\", effect: ask }\n  - { action: shell, resource: \"git *\", effect: allow }\n  - { action: shell, resource: \"git -*\", effect: deny }\n  - { action: shell, resource: \"git -C *\", effect: ask }\n  - { action: shell, resource: \"git push*\", effect: deny }\n  - { action: shell, resource: \"git -C * push*\", effect: deny }\n  - { action: shell, resource: \"git send-pack*\", effect: deny }\n  - { action: shell, resource: \"git remote *\", effect: allow }\n  - { action: shell, resource: \"python *\", effect: allow }\n  - { action: shell, resource: \"python3 *\", effect: allow }\n  - { action: shell, resource: \"pytest *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/python *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/python3 *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/pytest *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/python *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/python3 *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/pytest *\", effect: allow }\n  - { action: shell, resource: \"pwd *\", effect: allow }\n  - { action: shell, resource: \"ls *\", effect: allow }\n  - { action: shell, resource: \"cat *\", effect: allow }\n  - { action: shell, resource: \"head *\", effect: allow }\n  - { action: shell, resource: \"tail *\", effect: allow }\n  - { action: shell, resource: \"grep *\", effect: allow }\n  - { action: shell, resource: \"rg *\", effect: allow }\n  - { action: shell, resource: \"find *\", effect: allow }\n  - { action: shell, resource: \"sort *\", effect: allow }\n  - { action: shell, resource: \"uniq *\", effect: allow }\n  - { action: shell, resource: \"wc *\", effect: allow }\n  - { action: shell, resource: \"diff *\", effect: allow }\n  - { action: shell, resource: \"which *\", effect: allow }\n  - { action: shell, resource: \"echo *\", effect: allow }\n  - { action: shell, resource: \"sed *\", effect: allow }\n  - { action: shell, resource: \"awk *\", effect: allow }\n  - { action: shell, resource: \"test *\", effect: allow }\n  - { action: shell, resource: \"xargs *\", effect: allow }\n---\n",
+    "permissions": [
+      [
+        "*",
+        "*",
+        "deny"
+      ],
+      [
+        "read",
+        "*",
+        "allow"
+      ],
+      [
+        "read",
+        "*.env",
+        "deny"
+      ],
+      [
+        "read",
+        "*.env.*",
+        "deny"
+      ],
+      [
+        "read",
+        "*.env.example",
+        "allow"
+      ],
+      [
+        "read",
+        "secrets/**",
+        "deny"
+      ],
+      [
+        "read",
+        "credentials.*",
+        "deny"
+      ],
+      [
+        "read",
+        "**/secrets/**",
+        "deny"
+      ],
+      [
+        "read",
+        "**/credentials.*",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.ssh/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.aws/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.azure/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.kube/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.gnupg/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/gcloud/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.password-store/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.local/share/keyrings/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.vault-token",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.netrc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.npmrc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.pypirc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.docker/config.json",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/gh/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.terraform.d/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.bash_history",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.zsh_history",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.git-credentials",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/sops/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/opencode/opencode.json*",
+        "deny"
+      ],
+      [
+        "glob",
+        "*",
+        "allow"
+      ],
+      [
+        "grep",
+        "*",
+        "allow"
+      ],
+      [
+        "external_directory",
+        "*",
+        "ask"
+      ],
+      [
+        "skill",
+        "*",
+        "allow"
+      ],
+      [
+        "webfetch",
+        "*",
+        "allow"
+      ],
+      [
+        "websearch",
+        "*",
+        "allow"
+      ],
+      [
+        "edit",
+        "*",
+        "ask"
+      ],
+      [
+        "edit",
+        "*.md",
+        "allow"
+      ],
+      [
+        "edit",
+        "*.rst",
+        "allow"
+      ],
+      [
+        "shell",
+        "*",
+        "ask"
+      ],
+      [
+        "shell",
+        "git *",
+        "allow"
+      ],
+      [
+        "shell",
+        "git -*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git -C *",
+        "ask"
+      ],
+      [
+        "shell",
+        "git push*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git -C * push*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git send-pack*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git remote *",
+        "allow"
+      ],
+      [
+        "shell",
+        "python *",
+        "allow"
+      ],
+      [
+        "shell",
+        "python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        "pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/python *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/python *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        "pwd *",
+        "allow"
+      ],
+      [
+        "shell",
+        "ls *",
+        "allow"
+      ],
+      [
+        "shell",
+        "cat *",
+        "allow"
+      ],
+      [
+        "shell",
+        "head *",
+        "allow"
+      ],
+      [
+        "shell",
+        "tail *",
+        "allow"
+      ],
+      [
+        "shell",
+        "grep *",
+        "allow"
+      ],
+      [
+        "shell",
+        "rg *",
+        "allow"
+      ],
+      [
+        "shell",
+        "find *",
+        "allow"
+      ],
+      [
+        "shell",
+        "sort *",
+        "allow"
+      ],
+      [
+        "shell",
+        "uniq *",
+        "allow"
+      ],
+      [
+        "shell",
+        "wc *",
+        "allow"
+      ],
+      [
+        "shell",
+        "diff *",
+        "allow"
+      ],
+      [
+        "shell",
+        "which *",
+        "allow"
+      ],
+      [
+        "shell",
+        "echo *",
+        "allow"
+      ],
+      [
+        "shell",
+        "sed *",
+        "allow"
+      ],
+      [
+        "shell",
+        "awk *",
+        "allow"
+      ],
+      [
+        "shell",
+        "test *",
+        "allow"
+      ],
+      [
+        "shell",
+        "xargs *",
+        "allow"
+      ]
+    ]
+  },
+  "SecurityOfficer": {
+    "frontmatter": "---\ndescription: Optional read-only security audit; analyzes exposed surfaces and verifies CVEs against current sources.\nmode: subagent\nmodel: openrouter/openai/gpt-6.1-sol\ncolor: \"#dc2626\"\npermissions:\n  - { action: \"*\", resource: \"*\", effect: deny }\n  - { action: read, resource: \"*\", effect: allow }\n  - { action: read, resource: \"*.env\", effect: deny }\n  - { action: read, resource: \"*.env.*\", effect: deny }\n  - { action: read, resource: \"*.env.example\", effect: allow }\n  - { action: read, resource: \"secrets/**\", effect: deny }\n  - { action: read, resource: \"credentials.*\", effect: deny }\n  - { action: read, resource: \"**/secrets/**\", effect: deny }\n  - { action: read, resource: \"**/credentials.*\", effect: deny }\n  - { action: read, resource: \"~/.ssh/**\", effect: deny }\n  - { action: read, resource: \"~/.aws/**\", effect: deny }\n  - { action: read, resource: \"~/.azure/**\", effect: deny }\n  - { action: read, resource: \"~/.kube/**\", effect: deny }\n  - { action: read, resource: \"~/.gnupg/**\", effect: deny }\n  - { action: read, resource: \"~/.config/gcloud/**\", effect: deny }\n  - { action: read, resource: \"~/.password-store/**\", effect: deny }\n  - { action: read, resource: \"~/.local/share/keyrings/**\", effect: deny }\n  - { action: read, resource: \"~/.vault-token\", effect: deny }\n  - { action: read, resource: \"~/.netrc\", effect: deny }\n  - { action: read, resource: \"~/.npmrc\", effect: deny }\n  - { action: read, resource: \"~/.pypirc\", effect: deny }\n  - { action: read, resource: \"~/.docker/config.json\", effect: deny }\n  - { action: read, resource: \"~/.config/gh/**\", effect: deny }\n  - { action: read, resource: \"~/.terraform.d/**\", effect: deny }\n  - { action: read, resource: \"~/.bash_history\", effect: deny }\n  - { action: read, resource: \"~/.zsh_history\", effect: deny }\n  - { action: read, resource: \"~/.git-credentials\", effect: deny }\n  - { action: read, resource: \"~/.config/sops/**\", effect: deny }\n  - { action: read, resource: \"~/.config/opencode/opencode.json*\", effect: deny }\n  - { action: glob, resource: \"*\", effect: allow }\n  - { action: grep, resource: \"*\", effect: allow }\n  - { action: external_directory, resource: \"*\", effect: ask }\n  - { action: skill, resource: \"*\", effect: allow }\n  - { action: webfetch, resource: \"*\", effect: allow }\n  - { action: websearch, resource: \"*\", effect: allow }\n  - { action: shell, resource: \"*\", effect: ask }\n  - { action: shell, resource: \"git *\", effect: allow }\n  - { action: shell, resource: \"git -*\", effect: deny }\n  - { action: shell, resource: \"git -C *\", effect: ask }\n  - { action: shell, resource: \"git push*\", effect: deny }\n  - { action: shell, resource: \"git -C * push*\", effect: deny }\n  - { action: shell, resource: \"git send-pack*\", effect: deny }\n  - { action: shell, resource: \"git remote *\", effect: allow }\n  - { action: shell, resource: \"python *\", effect: allow }\n  - { action: shell, resource: \"python3 *\", effect: allow }\n  - { action: shell, resource: \"pytest *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/python *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/python3 *\", effect: allow }\n  - { action: shell, resource: \".venv/bin/pytest *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/python *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/python3 *\", effect: allow }\n  - { action: shell, resource: \"./.venv/bin/pytest *\", effect: allow }\n  - { action: shell, resource: \"pwd *\", effect: allow }\n  - { action: shell, resource: \"ls *\", effect: allow }\n  - { action: shell, resource: \"cat *\", effect: allow }\n  - { action: shell, resource: \"head *\", effect: allow }\n  - { action: shell, resource: \"tail *\", effect: allow }\n  - { action: shell, resource: \"grep *\", effect: allow }\n  - { action: shell, resource: \"rg *\", effect: allow }\n  - { action: shell, resource: \"find *\", effect: allow }\n  - { action: shell, resource: \"sort *\", effect: allow }\n  - { action: shell, resource: \"uniq *\", effect: allow }\n  - { action: shell, resource: \"wc *\", effect: allow }\n  - { action: shell, resource: \"diff *\", effect: allow }\n  - { action: shell, resource: \"which *\", effect: allow }\n  - { action: shell, resource: \"echo *\", effect: allow }\n  - { action: shell, resource: \"sed *\", effect: allow }\n  - { action: shell, resource: \"awk *\", effect: allow }\n  - { action: shell, resource: \"test *\", effect: allow }\n  - { action: shell, resource: \"xargs *\", effect: allow }\n---\n",
+    "permissions": [
+      [
+        "*",
+        "*",
+        "deny"
+      ],
+      [
+        "read",
+        "*",
+        "allow"
+      ],
+      [
+        "read",
+        "*.env",
+        "deny"
+      ],
+      [
+        "read",
+        "*.env.*",
+        "deny"
+      ],
+      [
+        "read",
+        "*.env.example",
+        "allow"
+      ],
+      [
+        "read",
+        "secrets/**",
+        "deny"
+      ],
+      [
+        "read",
+        "credentials.*",
+        "deny"
+      ],
+      [
+        "read",
+        "**/secrets/**",
+        "deny"
+      ],
+      [
+        "read",
+        "**/credentials.*",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.ssh/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.aws/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.azure/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.kube/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.gnupg/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/gcloud/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.password-store/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.local/share/keyrings/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.vault-token",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.netrc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.npmrc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.pypirc",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.docker/config.json",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/gh/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.terraform.d/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.bash_history",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.zsh_history",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.git-credentials",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/sops/**",
+        "deny"
+      ],
+      [
+        "read",
+        "~/.config/opencode/opencode.json*",
+        "deny"
+      ],
+      [
+        "glob",
+        "*",
+        "allow"
+      ],
+      [
+        "grep",
+        "*",
+        "allow"
+      ],
+      [
+        "external_directory",
+        "*",
+        "ask"
+      ],
+      [
+        "skill",
+        "*",
+        "allow"
+      ],
+      [
+        "webfetch",
+        "*",
+        "allow"
+      ],
+      [
+        "websearch",
+        "*",
+        "allow"
+      ],
+      [
+        "shell",
+        "*",
+        "ask"
+      ],
+      [
+        "shell",
+        "git *",
+        "allow"
+      ],
+      [
+        "shell",
+        "git -*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git -C *",
+        "ask"
+      ],
+      [
+        "shell",
+        "git push*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git -C * push*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git send-pack*",
+        "deny"
+      ],
+      [
+        "shell",
+        "git remote *",
+        "allow"
+      ],
+      [
+        "shell",
+        "python *",
+        "allow"
+      ],
+      [
+        "shell",
+        "python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        "pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/python *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        ".venv/bin/pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/python *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/python3 *",
+        "allow"
+      ],
+      [
+        "shell",
+        "./.venv/bin/pytest *",
+        "allow"
+      ],
+      [
+        "shell",
+        "pwd *",
+        "allow"
+      ],
+      [
+        "shell",
+        "ls *",
+        "allow"
+      ],
+      [
+        "shell",
+        "cat *",
+        "allow"
+      ],
+      [
+        "shell",
+        "head *",
+        "allow"
+      ],
+      [
+        "shell",
+        "tail *",
+        "allow"
+      ],
+      [
+        "shell",
+        "grep *",
+        "allow"
+      ],
+      [
+        "shell",
+        "rg *",
+        "allow"
+      ],
+      [
+        "shell",
+        "find *",
+        "allow"
+      ],
+      [
+        "shell",
+        "sort *",
+        "allow"
+      ],
+      [
+        "shell",
+        "uniq *",
+        "allow"
+      ],
+      [
+        "shell",
+        "wc *",
+        "allow"
+      ],
+      [
+        "shell",
+        "diff *",
+        "allow"
+      ],
+      [
+        "shell",
+        "which *",
+        "allow"
+      ],
+      [
+        "shell",
+        "echo *",
+        "allow"
+      ],
+      [
+        "shell",
+        "sed *",
+        "allow"
+      ],
+      [
+        "shell",
+        "awk *",
+        "allow"
+      ],
+      [
+        "shell",
+        "test *",
+        "allow"
+      ],
+      [
+        "shell",
+        "xargs *",
+        "allow"
+      ]
+    ]
+  }
+}

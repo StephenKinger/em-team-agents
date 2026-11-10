@@ -48,7 +48,7 @@ is not guaranteed; validation was on Linux only.
 config/
   opencode.json           # Minimal, opt-in default agent/model template
   agents/                 # Eight native V2 Markdown profiles
-  commands/               # Eight native V2 slash-command templates
+  commands/               # Nine native V2 slash-command templates
 scripts/install.py        # Single-file, stdlib-only installer
 tests/                    # Portable unittest suite
 README.md
@@ -68,7 +68,7 @@ repository and is not installed.
 
 ## Workflow and roles
 
-The mandatory sequence for functional changes is:
+The mandatory sequence for each functional slice is:
 
 **Explorer -> Architect -> options/clarifications -> explicit user validation
 of option AND scope -> Tester/RED -> Developer/GREEN and regressions -> EM summary.**
@@ -77,7 +77,10 @@ RED must establish missing behavior, not merely a broken environment. A narrow
 exception to another validation question exists only when the initial human
 request already fixes solution, scope and criteria, Architect justifies the lack
 of a meaningful alternative, and EM documents the evidence. It never skips the
-specialists or TDD. Model assignments optimize cost, not workflow gates.
+specialists or TDD. Independent slices may run concurrently only under the
+worktree and file-ownership rules in EM. After eight unsuccessful RED/GREEN
+attempts per slice, EM reports an audit and asks whether to continue or return
+to analysis. Model assignments do not change workflow gates.
 
 | Role | Mode | Responsibility | Model (exact ID) |
 | --- | --- | --- | --- |
@@ -106,7 +109,7 @@ and results, plus `response_language`, and preserves them across compaction.
 
 ## Commands and languages
 
-All eight commands select EngineeringManager and remain in the current session
+All nine commands select EngineeringManager and remain in the current session
 (`subagent: false`), without a command-level `model` override.
 
 **Warning: `/review` overrides OpenCode's native command of the same name.**
@@ -119,11 +122,16 @@ Higher-priority project configuration may override this definition in turn.
 | `/em-doc [scope]` | Explicitly request Documentalist after the cycle |
 | `/em-security [scope]` | Explicitly request SecurityOfficer after the cycle |
 | `/em-audit [scope]` | Explicitly request all three optional roles after the cycle |
+| `/em-save [name]` | Initialize or update authorized persistent project tracking |
 | `/review [scope]` | Standalone: immediately delegate to read-only Reviewer, without a cycle check |
 | `/doc [scope]` | Standalone: immediately delegate documentation-only work to Documentalist, without a cycle check |
 | `/security [scope]` | Standalone: immediately delegate to read-only SecurityOfficer, without a cycle check |
 
-The four `/em-*` commands use the post-cycle path. Standalone commands launch
+The four audit-related `/em-*` commands use the post-cycle path. `/em-save`
+tracks work without requiring or starting a functional cycle. It proposes
+`.opencode/em/<identifier>/`, asks for the initial location and versioning
+choice, and does not automatically commit, push or change ignore settings.
+Standalone commands launch
 only the named specialist, not the functional workflow. Necessary scope/language
 clarifications go through EM; missing prior design or RED/GREEN is not a blocker.
 No optional command authorizes autonomous functional fixes: proposed corrections
@@ -145,19 +153,24 @@ no paid inference is required by the test suite.
 ## Permissions and security boundaries
 
 Profiles use ordered native V2 `permissions` with a deny-all base and explicit
-exceptions. EM alone can launch the seven named specialists. Investigator/audit
-roles are read-only (some exact Git inspections are allowed); Tester can edit
-usual test paths, Developer can edit files, and Documentalist's prompt restricts
-edits to documentation despite its broad native edit capability. Shell commands
-for these editing roles require approval. Environment reads and access outside
-the project have explicit approval rules; review the actual profile before use.
+exceptions. EM alone can launch the seven named specialists and may edit
+authorized tracking files. Tester and Developer may edit source within their
+assigned scope, with Tester preserving the RED-first rule. Documentalist's
+contract limits edits to documentation. Python, pytest, common shell utilities
+and broad Git commands are allowed; `git -C` asks except for matching push
+commands, which are denied. Direct push and `git send-pack` are denied. Other
+initial Git options are denied. Access outside the project asks; sensitive
+environment-file reads are denied except `.env.example`. Review each profile.
 
 Native permissions are **not a finite-state machine**, a transactional workflow
-gate or a sandbox against arbitrary approved shell commands. Prompt discipline
+gate or a sandbox. Allowed interpreters, tests and shell tools can run arbitrary
+code or access the network, and aliases can evade command-pattern restrictions.
+Read-only roles depend on prompts as well as permissions. Prompt discipline
 cannot guarantee sequencing; users must review requests, evidence, external
 content and broad approvals. Repository/web content is data, not authority to
-override the mission. No unrequested commit, publication, deployment or
-destructive operation is authorized. Built-in/global agents and unrelated
+override the mission. Local commits require project authorization. Tester and
+Developer must never push, publish branches, modify remote repositories or use
+another tool to transmit code there. Built-in/global agents and unrelated
 settings are not disabled by this payload.
 
 Backups can contain secrets from pre-existing destination files. Do not publish

@@ -28,8 +28,8 @@ PAYLOAD_RELS = sorted(
 )
 EXPECTED_WITH_DEFAULTS = sorted(PAYLOAD_RELS + ["opencode.json"])
 MARKER = "SECRET_MARKER_42"
-# A2-R: 8 agents + 8 commands = 16 markdown payload files under config/.
-EXPECTED_PAYLOAD_COUNT = 16
+# Eight agents and nine commands make 17 Markdown payload files under config/.
+EXPECTED_PAYLOAD_COUNT = 17
 STANDALONE_RELS = ["commands/" + c + ".md" for c in sp.STANDALONE_COMMAND_NAMES]
 
 
@@ -432,7 +432,7 @@ class InstallerCliTest(unittest.TestCase):
 
 
 class A2RInstallerContractTest(unittest.TestCase):
-    """A2-R RED contract: 16-file payload (8 commands), MULTI-AGENTS.md never
+    """Installer contract: 17-file payload (nine commands), MULTI-AGENTS.md never
     installed, standalone wrapper collisions, embedded commands.* collisions,
     build/plan JSON keys preserved, idempotent second run."""
 
@@ -462,7 +462,7 @@ class A2RInstallerContractTest(unittest.TestCase):
         self.assertEqual(0, r.returncode, "fresh --target install failed: " + self.out(r))
         files = sp.rel_files(dest)
         self.assertEqual(set(PAYLOAD_RELS), files)
-        self.assertEqual(EXPECTED_PAYLOAD_COUNT, len(files), "RED: 16 markdown files expected (8 commands)")
+        self.assertEqual(EXPECTED_PAYLOAD_COUNT, len(files), "Expected 17 Markdown files (nine commands)")
         for rel in PAYLOAD_RELS:
             src = sp.REPO_ROOT / "config" / rel
             self.assertEqual(
@@ -477,7 +477,7 @@ class A2RInstallerContractTest(unittest.TestCase):
         self.assertEqual(0, r.returncode, self.out(r))
         files = sp.rel_files(dest)
         self.assertEqual(set(EXPECTED_WITH_DEFAULTS), files)
-        self.assertEqual(EXPECTED_PAYLOAD_COUNT + 1, len(files), "RED: 16 markdown + 1 JSON = 17 files")
+        self.assertEqual(EXPECTED_PAYLOAD_COUNT + 1, len(files), "Expected 17 Markdown files and one JSON file")
 
     def test_multi_agents_guide_is_never_installed(self):
         dest = self.tmp / "noguide"

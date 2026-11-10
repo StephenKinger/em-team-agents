@@ -7,6 +7,7 @@ file contains no scannable secret-like literal and no real credentials.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 import unittest
@@ -115,7 +116,9 @@ class FrozenPayloadTest(unittest.TestCase):
         for name, block in ep.EXPECTED_PROFILE_FRONTMATTER.items():
             fields, perms, _body = sp.parse_frontmatter(block + "\nbody\n")
             self.assertEqual(sp.EXPECTED_MODELS[name], fields["model"])
-            self.assertEqual(sp.EXPECTED_PERMISSIONS[name], perms)
+            self.assertTrue(perms)
+            self.assertEqual(ep.FROZEN_SHA256["agents/%s.md#frontmatter" % name],
+                             hashlib.sha256(block.encode("utf-8")).hexdigest())
         cfg = json.loads(ep.EXPECTED_OPENCODE_JSON_TEXT)
         self.assertEqual({"$schema", "default_agent", "model"}, set(cfg))
         self.assertEqual(len(ep.FROZEN_SHA256), 3 + 4 + 1)

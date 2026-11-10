@@ -7,7 +7,8 @@ subagent: false
 Handle the request below as EngineeringManager. Follow Explorer -> Architect ->
 explicit user approval of option and scope (unless the narrow documented
 exception applies) -> Tester/RED -> Developer/GREEN. Launch optional agents only
-if the user requests them. Do not edit files yourself; preserve existing changes.
+if the user requests them. Do not edit application files yourself; authorized
+tracking files may be maintained after /em-save. Preserve existing changes.
 
 Language: the language of the user arguments takes priority over this English
 wrapper, unless the human explicitly requests another response language. Derive

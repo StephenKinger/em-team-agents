@@ -57,7 +57,7 @@ python3 scripts/install.py --target ./custom-opencode --dry-run
 python3 scripts/install.py --target ./custom-opencode
 ```
 
-The no-defaults variant installs only eight profiles and eight commands; it never
+The no-defaults variant installs only eight profiles and nine commands; it never
 creates or modifies JSON, even with `--replace`. The script uses an explicit
 allowlist, not an export of the user's global directory. It never copies
 provider configuration, build/plan customization, auth.json, service.json,
@@ -98,7 +98,7 @@ IDs are refused even with `--replace`; review and resolve them manually first.
 ### Manual JSONC handling
 
 If using JSONC, do not try to force the installer. Manually copy only the eight
-reviewed files from `config/agents/` and eight from `config/commands/` into the
+reviewed files from `config/agents/` and nine from `config/commands/` into the
 corresponding destination directories. Back up existing files privately before
 replacing anything. Merge the two defaults into your JSONC by hand only if
 desired, preserving comments, unrelated settings and native permissions. Resolve
@@ -180,9 +180,9 @@ OpenCode hot-reloads configuration, agents and commands after saves; no restart
 is needed to apply them. Use `/reload` to force a reload if needed. This package
 does not alter terminal-only `cli.json` settings.
 
-### Eight commands, two optional entry paths
+### Nine commands, two optional entry paths
 
-All eight commands select EngineeringManager in the current session
+All nine commands select EngineeringManager in the current session
 (`subagent: false`) without their own `model` field:
 
 | Command | Entry path and behavior |
@@ -195,6 +195,7 @@ All eight commands select EngineeringManager in the current session
 | `/em-doc [scope]` | Post-cycle: Documentalist after EM verifies completion |
 | `/em-security [scope]` | Post-cycle: SecurityOfficer after EM verifies completion |
 | `/em-audit [scope]` | Post-cycle: all three optional roles after EM verifies completion |
+| `/em-save [name]` | Initialize or update authorized project tracking; no functional cycle required |
 
 **Warning: `/review` overrides the native OpenCode command of the same name.**
 Review this intentional replacement before installing. More specific project
@@ -240,7 +241,7 @@ opencode api get "/api/model/default?$location_query"
 ```
 
 Confirm the returned location, eight IDs, English prompts, ordered role
-permissions, Architect delegation, eight command names/descriptions and default
+permissions, Architect delegation, nine command names/descriptions and default
 model. On the tested API, `/api/command` exposes names/descriptions, not template
 bodies: check installed template bytes against the payload separately. If
 necessary read `/api/config` with the same location query privately to verify

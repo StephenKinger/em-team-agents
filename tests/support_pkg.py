@@ -13,6 +13,7 @@ outside the repo, under the approved temp root - not by the public suite.
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import re
 import subprocess
@@ -40,8 +41,8 @@ AGENT_NAMES = [
     "SecurityOfficer",
 ]
 SUBAGENT_NAMES = [n for n in AGENT_NAMES if n != "EngineeringManager"]
-# A2-R: the 5 /em* commands plus the 3 standalone wrappers = 8 commands.
-COMMAND_NAMES = ["em", "em-review", "em-doc", "em-security", "em-audit", "review", "doc", "security"]
+# The functional, audit, tracking and standalone commands.
+COMMAND_NAMES = ["em", "em-review", "em-doc", "em-security", "em-audit", "em-save", "review", "doc", "security"]
 STANDALONE_COMMAND_NAMES = ["review", "doc", "security"]
 # Files expected at the repo ROOT (A2-R adds the English guide; it is shipped in
 # the repo but intentionally NOT installed by scripts/install.py).
@@ -73,60 +74,11 @@ EXPECTED_COLORS = {
 }
 EXPECTED_MODES = {n: ("primary" if n == "EngineeringManager" else "subagent") for n in AGENT_NAMES}
 
-# Permission contract copied from the 8 source profiles: exact actions,
-# resources, effects and ORDER are preserved. The only rename is the EM
-# subagent resource Concepteur -> Architect.
-_BASE = [
-    ("*", "*", "deny"),
-    ("read", "*", "allow"),
-    ("read", "*.env", "ask"),
-    ("read", "*.env.*", "ask"),
-    ("read", "*.env.example", "allow"),
-    ("glob", "*", "allow"),
-    ("grep", "*", "allow"),
-    ("external_directory", "*", "ask"),
-]
-_TAIL = [("skill", "*", "allow"), ("webfetch", "*", "allow"), ("websearch", "*", "allow")]
-_GIT_BASE = [
-    ("shell", "git status --short", "allow"),
-    ("shell", "git diff", "allow"),
-    ("shell", "git diff --cached", "allow"),
-    ("shell", "git diff --stat", "allow"),
-    ("shell", "git diff --name-only", "allow"),
-]
-_GIT_LOG = ("shell", "git log -5 --oneline", "allow")
-_GIT_CHECK = ("shell", "git diff --check", "allow")
-# Built by concatenation so this source file keeps no contiguous git-index
-# token; the runtime tuple value is unchanged.
-_GIT_LS = ("shell", "git ls-" + "files", "allow")
-_TESTER_EDIT = [
-    ("edit", "*", "ask"),
-    ("edit", "tests/*", "allow"),
-    ("edit", "test/*", "allow"),
-    ("edit", "__tests__/*", "allow"),
-    ("edit", "*/tests/*", "allow"),
-    ("edit", "*/test/*", "allow"),
-    ("edit", "*/__tests__/*", "allow"),
-    ("edit", "*.test.*", "allow"),
-    ("edit", "*.spec.*", "allow"),
-    ("edit", "test_*.py", "allow"),
-    ("edit", "*/test_*.py", "allow"),
-    ("edit", "*_test.go", "allow"),
-]
-
-EXPECTED_PERMISSIONS = {
-    "EngineeringManager": _BASE
-    + [("question", "*", "allow")]
-    + _TAIL
-    + [("subagent", n, "allow") for n in SUBAGENT_NAMES],
-    "Explorer": _BASE + _TAIL + _GIT_BASE + [_GIT_LS, _GIT_LOG],
-    "Architect": _BASE + _TAIL,
-    "Tester": _BASE + _TAIL + _TESTER_EDIT + [("shell", "*", "ask")],
-    "Developer": _BASE + _TAIL + [("edit", "*", "allow"), ("shell", "*", "ask")],
-    "Reviewer": _BASE + _TAIL + _GIT_BASE + [_GIT_CHECK, _GIT_LS],
-    "Documentalist": _BASE + _TAIL + [("edit", "*", "allow"), ("shell", "*", "ask")],
-    "SecurityOfficer": _BASE + _TAIL + _GIT_BASE + [_GIT_LS],
-}
+# Frozen synchronized profile frontmatters, independent of the current user's
+# configuration. Preserve exact permission actions, resources, effects and order.
+EXPECTED_PROFILES = json.loads((REPO_ROOT / "tests/expected_profiles.json").read_text(encoding="utf-8"))
+EXPECTED_PERMISSIONS = {name: [tuple(rule) for rule in profile["permissions"]]
+                        for name, profile in EXPECTED_PROFILES.items()}
 
 # Destination-side names fixed by the approved design (and by these tests).
 BACKUP_DIR_NAME = ".em-team-agents-backups"
@@ -135,7 +87,7 @@ LOCK_NAME = ".em-team-agents.lock"
 EXPECTED_PACKAGE_FILES = (
     ["LICENSE", "README.md", "INSTALL.md", ".gitignore", ROOT_GUIDE_NAME, "config/opencode.json",
      "scripts/install.py",
-     "tests/support_pkg.py", "tests/expected_payload.py", "tests/test_guard.py", "tests/test_package.py",
+     "tests/support_pkg.py", "tests/expected_payload.py", "tests/expected_profiles.json", "tests/test_em_sync.py", "tests/test_guard.py", "tests/test_package.py",
      "tests/test_support.py", "tests/test_install.py"]
     + ["config/agents/" + n + ".md" for n in AGENT_NAMES]
     + ["config/commands/" + c + ".md" for c in COMMAND_NAMES]

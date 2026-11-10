@@ -70,16 +70,16 @@ class LayoutTest(unittest.TestCase):
         self.assertEqual(sorted(sp.AGENT_NAMES), names)
         self.assertNotIn("Concepteur", names, "Concepteur must be renamed to Architect inside the package")
 
-    def test_commands_dir_has_exactly_the_8_expected_names(self):
+    def test_commands_dir_has_exactly_the_9_expected_names(self):
         cdir = sp.REPO_ROOT / "config" / "commands"
         if not cdir.is_dir():
             self.fail("RED: config/commands/ is missing; expected " + ", ".join(sp.COMMAND_NAMES))
         names = sorted(p.stem for p in cdir.glob("*.md"))
         self.assertEqual(sorted(sp.COMMAND_NAMES), names)
         self.assertEqual(
-            8,
+            9,
             len(names),
-            "RED: A2-R expects 8 commands (5 /em* + review/doc/security), got %d" % len(names),
+            "Expected nine commands including /em-save, got %d" % len(names),
         )
 
 
@@ -203,7 +203,7 @@ class CommandContractTest(unittest.TestCase):
 
 
 class ModifiedProfileContractTest(unittest.TestCase):
-    """A2-R: only the BODIES of the 4 profiles change; frontmatter stays byte-identical."""
+    """Check current frontmatter and the retained standalone entry-path contract."""
 
     def _agent_path(self, name):
         return sp.REPO_ROOT / "config" / "agents" / (name + ".md")
@@ -221,17 +221,15 @@ class ModifiedProfileContractTest(unittest.TestCase):
                     self.fail("RED: config/agents/%s.md is missing" % name)
 
     def test_modified_profiles_frontmatter_is_byte_identical_to_current(self):
-        # Frontmatter (description/mode/model/color/ordered permissions) must be
-        # strictly unchanged: byte-exact comparison with the frozen block.
+        # Compare against the fixed synchronized snapshot, not live user configuration.
         for name in ep.MODIFIED_PROFILE_NAMES:
             with self.subTest(agent=name):
                 text = self._agent_path(name).read_text(encoding="utf-8")
                 block = self._frontmatter_block(text)
                 self.assertEqual(
-                    ep.EXPECTED_PROFILE_FRONTMATTER[name],
+                    sp.EXPECTED_PROFILES[name]["frontmatter"],
                     block,
-                    "RED: frontmatter of %s must stay byte-identical (model/permissions unchanged); "
-                    "frozen sha256 %s" % (name, ep.FROZEN_SHA256["agents/%s.md#frontmatter" % name]),
+                    "Frontmatter of %s must match the synchronized profile fixture" % name,
                 )
 
     def test_modified_profiles_bodies_carry_the_two_entry_paths(self):
